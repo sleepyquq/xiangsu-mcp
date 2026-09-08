@@ -1,0 +1,15 @@
+node_modules/
+config.local.json
+commands.runtime.json
+
+.local/
+
+# 像塑从当前目录启动时可能生成的 GPU 缓存，不是项目源码。
+/undefined/gpu_cache/
+
+# 仅保留在开发者本机的协作上下文
+.workspace-memory/
+[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
+.env
+.env.*
+!.env.example

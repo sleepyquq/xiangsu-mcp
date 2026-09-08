@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import sharp from 'sharp';
+import {runAdapter} from '../src/adapters.mjs';
+test('本地图像裁剪、源码符号查询及未适配分支',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'xiangsu-adapter-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ await fs.mkdir(path.join(root,'Assets'));
+ const c={projectPath:root,prepare:async()=>{},call:async()=>({success:true})};
+ await sharp({create:{width:20,height:10,channels:4,background:'#ff0000'}}).png().toFile(path.join(root,'Assets/in.png'));
+ const result=await runAdapter('imageCrop',{inputPath:'Assets/in.png',selection:{type:'grid',rows:1,columns:2,outputs:[{row:0,column:1,outputPath:'Assets/out.png'}]}},c);
+ assert.equal(result.outputs.length,1);assert.equal((await sharp(path.join(root,'Assets/out.png')).metadata()).width,10);
+ await assert.rejects(()=>runAdapter('imageCrop',{inputPath:'Assets/in.png',selection:{type:'regions',outputs:[{left:0,top:0,width:1,height:1,outputPath:'../escape.png'}]}},c),/边界/);
+ await fs.writeFile(path.join(root,'Assets/a.ts'),'function foo(){}; foo();');
+ assert.equal((await runAdapter('code_search',{mode:'definition',symbol:'foo'},c)).matches[0].name,'foo');
+ assert.equal((await runAdapter('code_search',{mode:'references',symbol:'foo'},c)).total,2);
+ await assert.rejects(()=>runAdapter('seedreamEffectWorkflow',{},c),/CLOUD_BACKEND/);
+});

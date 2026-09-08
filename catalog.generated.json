@@ -1,0 +1,2898 @@
+{
+  "sourceBinary": "%LOCALAPPDATA%/Douyin AR/Resources/agent-server.exe",
+  "sha256": "038a67ba2fe26192c271da8fdbca88ab9a5b8d39287205df33676dbd4137df86",
+  "extractedAt": "2026-09-08T14:00:15.078Z",
+  "unknownSchemaConstructs": [
+    "refine",
+    "preprocess",
+    "superRefine",
+    "regex",
+    null,
+    "createToolboxSchema",
+    "transform"
+  ],
+  "commands": [
+    {
+      "name": "getScene",
+      "description": "Get scene info.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addRenderGroup",
+      "description": "Create a render group with the given name.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Render group name. Default is 'General'"
+          },
+          "type": {
+            "type": "string",
+            "description": "Render group type. Default is 'Utility'. Call getSupportedRenderGroupType to get all types."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "name",
+        "type"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "deleteRenderGroup",
+      "description": "Delete a render group of the given guid.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the render group to delete."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "setRenderGroup",
+      "description": "Modify a render group property.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the render group to modify property."
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "description": "The property of render group to modify."
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "data": {},
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "property",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "guid",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "properties"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getRenderGroup",
+      "description": "Get render group info",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the render group to get."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getSupportedRenderGroupType",
+      "description": "Get all supported render group types.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "moveRenderGroup",
+      "description": "Change the position of an existing render group in the scene's root hierarchy",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the render group to move."
+          },
+          "aboveRenderGroup": {
+            "type": "string",
+            "description": " The GUID of the render group that will be directly above the moved group, If not provided, the group is moved to the top of the list (index 0)."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "aboveRenderGroup"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "duplicateRenderGroup",
+      "description": "duplicate the given RenderGroup",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the render group to duplicate."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addSceneObject",
+      "description": "Create a scene object.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "parent": {
+            "type": "string",
+            "description": "The guid of the parent render group or scene object."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the transform component. Transform(3D) or ScreenTransform(2D). Default is 'Transform'."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the scene object. Default is 'SceneObject'"
+          }
+        },
+        "required": [
+          "parent"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "parent",
+        "type",
+        "name"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "deleteSceneObject",
+      "description": "Delete a scene object",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the scene object to delete."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "setSceneObject",
+      "description": "Modify a scene object",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the scene object to modify property."
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "description": "The property to modify."
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "data": {},
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "property",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "guid",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "properties"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getSceneObject",
+      "description": "Get scene object info",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the scene object to get."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "moveSceneObject",
+      "description": "Move a scene object, potentially re-parenting it and reordering it among its siblings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the scene object to move"
+          },
+          "parent": {
+            "type": "string",
+            "description": "The guid of the parent render group or scene object."
+          },
+          "aboveSceneObject": {
+            "type": "string",
+            "description": "The GUID of the scene object that will be directly above the moved object, If not provided, the object is moved to the top of the list (index 0)."
+          }
+        },
+        "required": [
+          "guid",
+          "parent"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "parent",
+        "aboveSceneObject"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "duplicateSceneObject",
+      "description": "duplicate the given scene object",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the scene object to duplicate."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addSceneObjectFromAsset",
+      "description": "Add a new scene object to the scene with an asset",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the asset to create the new object."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addComponent",
+      "description": "Create a component",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sceneObject": {
+            "type": "string",
+            "description": "The guid of the scene object to add the component."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the component to create. Call getSupportedComponentTypes to get all types."
+          }
+        },
+        "required": [
+          "sceneObject",
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "sceneObject",
+        "type"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "deleteComponent",
+      "description": "Delete a component",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the component to delete."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "setComponent",
+      "description": "Modify a component",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the component to modify property."
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "description": "The name of the property to modify."
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "data": {},
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "property",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "guid",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "properties"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getComponent",
+      "description": "Get component info",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the component to get."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getSupportedComponentTypes",
+      "description": "Get all supported component types",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addAsset",
+      "description": "Create an asset",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The path of the asset to create."
+          },
+          "folder": {
+            "type": "string",
+            "description": "The guid of a folder asset item."
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "path",
+        "folder"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addPackage",
+      "description": "Add an ehpackage asset.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The path of the ehpackage file to add."
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "path"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "deleteAsset",
+      "description": "Delete an asset",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the asset to delete."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "addBuiltinResource",
+      "description": "Create a built-in resource by resource type display name. Read .agent/skills/asset-manager/SKILL.md for DYEH resource workflows and unsupported asset abilities. Read AgentResources/Asset/schemas/resource_creation_templates*.json for creatable resource_type values.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "description": "Resource type display name from resource_creation_templates*.json."
+          },
+          "name": {
+            "type": "string",
+            "description": "Optional display name to apply after the resource is created."
+          }
+        },
+        "required": [
+          "resource_type"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "resource_type",
+        "name"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "setResourceProperties",
+      "description": "Modify resource properties. Accepts object shorthand or SetAsset-style property entries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the resource asset to modify."
+          },
+          "properties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "property": {
+                      "type": "string",
+                      "description": "The name of the property to modify."
+                    },
+                    "value": {
+                      "description": "A command-serialized value {type,data}, or a shorthand value."
+                    }
+                  },
+                  "required": [
+                    "property",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            ]
+          }
+        },
+        "required": [
+          "guid",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "properties"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "setAsset",
+      "description": "Modify an asset",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the asset to modify property."
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "description": "The name of the property to modify."
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "data": {},
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "property",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "guid",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid",
+        "properties"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getAsset",
+      "description": "Get asset info",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the asset to get."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getAllAssets",
+      "description": "Get all assets info.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "getBuiltinAssetFiles",
+      "description": "Get all builtin asset files.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "createPrefabFromSceneObject",
+      "description": "Create a prefab by a sceneObject",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the sceneObject to create a prefab."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "instantiatePrefab",
+      "description": "Instantiate a prefab to the scene",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string",
+            "description": "The guid of the prefab asset to instantiate."
+          }
+        },
+        "required": [
+          "guid"
+        ],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "guid"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "createSurfaceGraphSceneObject",
+      "description": "Create a surface graph scene object.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Surface graph scene object name. Default is 'DefaultSG'"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [
+        "name"
+      ],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "startAction",
+      "description": "The Agent begins to act.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "endAction",
+      "description": "The Agent stops acting.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    },
+    {
+      "name": "rejectAction",
+      "description": "The Agent rejects above action.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "parameterOrder": [],
+      "source": "official-command-schema",
+      "runtimeVerified": false
+    }
+  ],
+  "topTools": [
+    {
+      "name": "sceneSpec",
+      "description": "Get a scene specification for scripting. Returns managed objects with id/type/position/size and basic static fields.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "previewTool",
+      "description": "Interact with the Preview view. Use this tool to send a sequence of commands (DSL) to interact with the running preview. This is for TESTING and SIMULATING USER INTERACTION, not for editing the project. For editing the project, use sceneOps, setupGameScript, or compileProject instead. Available commands: screenshot, touch, touch_down, touch_up, touch_move, drag, wait, reset_preview, start_preview_record, stop_preview_record, record_preview_video_mp4, pause_preview, resume_preview, transport_preview_property.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "intention": {
+            "type": "string",
+            "description": "What you are trying to achieve with this interaction."
+          },
+          "commands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "commandType": {
+                  "type": "string",
+                  "description": "The preview command to execute."
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "Parameters for the command."
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "Comment for this command."
+                }
+              },
+              "required": [
+                "commandType"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "description": "Sequence of commands to execute."
+          }
+        },
+        "required": [
+          "intention",
+          "commands"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "consoleLog",
+      "description": "Retrieve runtime console logs from the Effect House project. Use this tool to get script logs, debug information, and runtime output from the currently running preview or compiled project.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "startLine": {
+            "type": "number",
+            "description": "1-based log line to start reading from. If omitted, reads the latest logs."
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of logs to retrieve. Default is 200."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playLifecycle",
+      "description": "Control Game eval playthrough lifecycle. Use \"start\" to reset Preview, start runtime logging and round video recording, wait 400ms for the current run log, and pause. Use \"restart\" after a terminal state to record it for 3 seconds, restart gameplay, and keep writing the same round video. Use \"finish\" to record the terminal state for 3 seconds, stop runtime logging, save the round video, resume Preview, and reset it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "start",
+              "restart",
+              "finish"
+            ],
+            "description": "Use \"start\" to begin recording, \"restart\" to restart gameplay in the same recording, or \"finish\" to save it."
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playScreenshot",
+      "description": "Capture a Preview screenshot for the current Game eval playthrough. It uses the fixed Preview scale 0.5 to reduce image token cost; call it with no arguments.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playStep",
+      "description": "Advance the current Game eval playthrough by one controlled step. It executes Preview actions, looping switch_human_action entries, and simulated audio detector inputs in the supplied order, waits waitAfterMs after each action, then pauses Preview again. Audio inputs are serialized with touch and human actions; pitch, volume, and one keyword event may be combined in one audio action. Before the first volume action, read the game input mapping and use a small calibration value; raw detector volume is not normalized gameplay strength. Use multiple actions in one call for a coherent operation such as tap sequences, press-move-release, or short interaction chains. Choose reasonable non-zero waits so the runtime can process each command before the next one. Coordinates are normalized Preview coordinates in [0, 1].",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "commandType": {
+                      "type": "string",
+                      "enum": [
+                        "touch",
+                        "touch_down",
+                        "touch_up",
+                        "touch_move",
+                        "drag",
+                        "wait"
+                      ],
+                      "description": "Preview action command to execute."
+                    },
+                    "params": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "description": "Params for the Preview action command."
+                    },
+                    "waitAfterMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30000,
+                      "description": "Runtime duration to wait after this action before the next action or final pause, in milliseconds."
+                    }
+                  },
+                  "required": [
+                    "commandType",
+                    "waitAfterMs"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "commandType": {
+                      "const": "switch_human_action"
+                    },
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "actionId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Exact action id returned by playHumanActions."
+                        }
+                      },
+                      "required": [
+                        "actionId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "waitAfterMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30000,
+                      "description": "Runtime duration to wait after this action before the next action or final pause, in milliseconds."
+                    }
+                  },
+                  "required": [
+                    "commandType",
+                    "params",
+                    "waitAfterMs"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "commandType": {
+                      "const": "simulate_audio_input"
+                    },
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "pitchHz": {
+                          "type": "number",
+                          "minimum": 45,
+                          "maximum": 650,
+                          "description": "Simulated pitch detector output in Hz."
+                        },
+                        "volume": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "Raw volume detector output in [0, 1], not normalized gameplay strength. Read the game mapping before first use and start with a small calibration value because values such as 0.1 may already saturate."
+                        },
+                        "keywordEvent": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "hit"
+                                },
+                                "keywords": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "minItems": 1,
+                                  "description": "Keywords reported by the simulated detector hit."
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "keywords"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "const": "miss"
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ],
+                          "description": "One simulated keyword detector event."
+                        }
+                      },
+                      "required": [],
+                      "additionalProperties": false
+                    },
+                    "waitAfterMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30000,
+                      "description": "Runtime duration to wait after this action before the next action or final pause, in milliseconds."
+                    }
+                  },
+                  "required": [
+                    "commandType",
+                    "params",
+                    "waitAfterMs"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "minItems": 1,
+            "description": "Ordered Preview, human, and simulated audio actions to execute in one controlled step."
+          }
+        },
+        "required": [
+          "actions"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playState",
+      "description": "Query exact Game runtime field paths for the current eval playthrough. Use playStateFields first when field names are unknown. Range can be the last N runtime frames or the runtime frames after the previous pause boundary.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "fields"
+              },
+              "fieldNames": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Exact runtime field paths, for example [\"score\"], [\"game.started\"], [\"activeScene.猪猪存钱罐.transform.screenPosition\"], or [\"extra.dt\"]."
+              }
+            },
+            "required": [
+              "type",
+              "fieldNames"
+            ],
+            "additionalProperties": false
+          },
+          "range": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "lastFrames"
+                  },
+                  "frameCount": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "description": "Number of latest runtime messages to inspect."
+                  }
+                },
+                "required": [
+                  "type",
+                  "frameCount"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "sinceLastPause"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "target",
+          "range"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playStateFields",
+      "description": "Return a flat fieldNames array of directly queryable root, game, and activeScene paths without their values. The array can be passed directly to playState target.fieldNames.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "playHumanActions",
+      "description": "List the human actions available to the current Game eval playthrough. Each action includes an exact id, its face/hand/fullbody category, and a recommended wait before the looping video repeats.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "sceneOps",
+      "description": "Manage the Initial State and Layout of the scene (Editor View). Use this tool to set or modify STATIC properties like default text content, starting positions, colors, and textures. PREFERRED over modifying scripts directly for static changes. To add built-in components like GameRankingList or CheckinRankingList, use type \"General\" with general.kind and general.properties. For a Loki GAN preset, first use ganEffect with operation:\"list\", then add it with type:\"General\", id set to the returned name, and general.kind set to the returned ganKey. Provide an array in the ops field. Each object item: {op:\"add|modify|remove\", id:string, ...fields}. To hide/show a whole scene group, use {op:\"modify\", target:\"group\", groupId:string, visible:false/true}. Prefer group visibility for same-phase UI sets instead of toggling each child. To hide/show an existing object, use op:\"modify\" with visible:false/true; type can be omitted for visible-only changes. For one phase UI set, keep one visibility control unit: either the parent group or its child objects, not both. Use op:\"remove\" for explicit delete/remove requests. For mention-provided runtime-only objects, pass guid on modify ops so runtime can resolve them when they are not in displayList. Positioning uses an explicit positionMode field. Use absolute for direct center-point placement with x and y, pinned for edge-based placement with left/right/top/bottom, and relative for nudging an existing object with dx and dy. For Image and Text, x/y are the center of the final width/height rectangle, never its left/top edge. Image uses textureKey, optional drawMode (Normal|Tiled|Filled|Ellipse), and optional alpha in [0,1] for opacity. Audio uses clip. PostProcess uses effectType and optional materialGuid.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "add",
+                    "modify",
+                    "remove"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "enum": [
+                    "object",
+                    "group"
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "Image",
+                    "Text",
+                    "Audio",
+                    "General",
+                    "PostProcess"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "guid": {
+                  "type": "string"
+                },
+                "groupId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "positionMode": {
+                  "type": "string",
+                  "enum": [
+                    "absolute",
+                    "pinned",
+                    "relative"
+                  ]
+                },
+                "x": {
+                  "type": "number",
+                  "description": "Center x coordinate of the final Image/Text rectangle in the 720x1280 canvas. Never pass the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Center y coordinate of the final Image/Text rectangle in the 720x1280 canvas. Never pass the top edge."
+                },
+                "width": {
+                  "type": "number",
+                  "description": "Final display width used with the center-point x coordinate."
+                },
+                "height": {
+                  "type": "number",
+                  "description": "Final display height used with the center-point y coordinate."
+                },
+                "left": {
+                  "type": "number"
+                },
+                "right": {
+                  "type": "number"
+                },
+                "top": {
+                  "type": "number"
+                },
+                "bottom": {
+                  "type": "number"
+                },
+                "dx": {
+                  "type": "number"
+                },
+                "dy": {
+                  "type": "number"
+                },
+                "textureKey": {
+                  "type": "string"
+                },
+                "drawMode": {
+                  "type": "string",
+                  "enum": [
+                    "Normal",
+                    "Tiled",
+                    "Filled",
+                    "Ellipse"
+                  ]
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Initial Image opacity in [0..1]. Also supported by modify Image ops."
+                },
+                "content": {
+                  "type": "string"
+                },
+                "fontSize": {
+                  "type": "number"
+                },
+                "color": {
+                  "type": "string"
+                },
+                "shadow": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "alpha": {
+                      "type": "number"
+                    },
+                    "distance": {
+                      "type": "number"
+                    },
+                    "angle": {
+                      "type": "number"
+                    },
+                    "feather": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "stroke": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "alpha": {
+                      "type": "number"
+                    },
+                    "width": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "boxDimension": {
+                  "type": "string",
+                  "enum": [
+                    "dynamic",
+                    "fixedWidth",
+                    "fixedSize"
+                  ]
+                },
+                "lineBreakType": {
+                  "type": "string",
+                  "enum": [
+                    "autoLineBreak",
+                    "cutOff",
+                    "clamp",
+                    "shrink"
+                  ]
+                },
+                "horizontalAlignment": {
+                  "type": "string",
+                  "enum": [
+                    "left",
+                    "center",
+                    "right"
+                  ]
+                },
+                "verticalAlignment": {
+                  "type": "string",
+                  "enum": [
+                    "top",
+                    "center",
+                    "bottom"
+                  ]
+                },
+                "lineSpacing": {
+                  "type": "number"
+                },
+                "textContainerId": {
+                  "type": "string"
+                },
+                "clip": {
+                  "type": "string"
+                },
+                "isBgm": {
+                  "type": "boolean"
+                },
+                "general": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string"
+                    },
+                    "properties": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "visible": {
+                  "type": "boolean"
+                },
+                "extensions": {
+                  "type": "object",
+                  "properties": {
+                    "physics2d": {
+                      "type": "object",
+                      "properties": {
+                        "schemaVersion": {
+                          "const": 1
+                        },
+                        "rigidBody": {
+                          "type": "object",
+                          "properties": {
+                            "ensure": {
+                              "type": "boolean"
+                            },
+                            "remove": {
+                              "type": "boolean"
+                            },
+                            "validateOnly": {
+                              "type": "boolean"
+                            },
+                            "static": {
+                              "type": "boolean"
+                            },
+                            "useGravity": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        },
+                        "colliders": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "BoxCollider2D",
+                                  "CircleCollider2D",
+                                  "EdgeCollider2D",
+                                  "PolygonCollider2D"
+                                ]
+                              },
+                              "guid": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "index": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "ensure": {
+                                "type": "boolean"
+                              },
+                              "remove": {
+                                "type": "boolean"
+                              },
+                              "validateOnly": {
+                                "type": "boolean"
+                              },
+                              "offset": {
+                                "type": "object",
+                                "properties": {
+                                  "x": {
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "size": {
+                                "type": "object",
+                                "properties": {
+                                  "width": {
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "width",
+                                  "height"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "radius": {
+                                "type": "number"
+                              },
+                              "isTangible": {
+                                "type": "boolean"
+                              },
+                              "physicsMaterial": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "preset": {
+                                    "type": "string",
+                                    "enum": [
+                                      "default",
+                                      "none"
+                                    ]
+                                  },
+                                  "patch": {
+                                    "type": "object",
+                                    "properties": {
+                                      "dynamicFriction": {
+                                        "type": "number"
+                                      },
+                                      "staticFriction": {
+                                        "type": "number"
+                                      },
+                                      "restitution": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "preset"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "componentGuid": {
+                  "type": "string"
+                },
+                "effectType": {
+                  "type": "string",
+                  "enum": [
+                    "Bloom",
+                    "Fxaa",
+                    "ChromaticAberration",
+                    "Distort",
+                    "Grain",
+                    "Vignette",
+                    "LensFlare",
+                    "MotionBlur",
+                    "BokehBlur",
+                    "Custom"
+                  ]
+                },
+                "materialGuid": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "op"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Array of scene operations. Choose ONE positionMode per op: absolute, pinned, or relative."
+          }
+        },
+        "required": [
+          "ops"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "setupGameScript",
+      "description": "Set up game scripts and dependencies for selected abilities.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scriptName": {
+            "type": "string",
+            "description": "The script name. Defaults to GameManager."
+          },
+          "targetId": {
+            "type": "string",
+            "description": "The scene object ID to attach the script to. Omit to use the default object."
+          },
+          "abilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Exact Chinese ability names required by the script. Do not pass skill IDs, file names, or paths."
+          },
+          "resourceBindings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "property": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Script field name."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "Texture",
+                    "Material"
+                  ],
+                  "description": "Resource type."
+                },
+                "guid": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Resource GUID."
+                }
+              },
+              "required": [
+                "property",
+                "type",
+                "guid"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Optional Material or Texture resources to assign to script fields."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "awaitAudioGeneration",
+      "description": "Wait for all async audio-generation jobs started via audioEffectWorkflowBatch with nonBlocking=true to finish. Call this AFTER scene assembly and scripting, right before final compileProject, so the compiled project uses the real rendered audio instead of silent placeholders. Returns the list of any clip keys that ultimately failed; audio failures do not block compile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Optional note describing why you are waiting now."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "awaitImageGeneration",
+      "description": "Wait for all async image-generation jobs (started via seedreamEffectWorkflowBatch with nonBlocking=true) to finish. This runs automatically before scene assembly and final compile/preview verification, so downstream tools use real generated images or final fallback images instead of transparent placeholders. Returns per-batch completed/failed counts and the list of any 视觉资产 key values that ultimately failed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Optional note describing why you are waiting now."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "materialAsset",
+      "description": "DYEH adapter for material-authoring/SKILL.md. Use create only when a new hand-written OMTL/AUSL material is required. Use edit with the existing material guid for every source change or compile-error repair; edit always rewrites in place. use read to inspect an existing .omtl, and use get_compile_status when the skill says GetMaterialCompileStatus. Do not create Materials folders, write .omtl files manually, or call a raw import path; create and edit own the asset lifecycle. Never write metadata-only OMTL or built-in Unlit shells; create and edit require Pass.Ausl plus real AUSL shader code. The create and edit responses include compileStatus mapped from ResItemMaterialOmtl.isError/errorMessage. New materials are created from a built-in Unlit material and then overwritten with omtlContent; if compileStatus.result.isError is true, fix compileStatus.result.errorMessage and retry with edit using that asset guid.",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "create"
+              },
+              "assetName": {
+                "type": "string",
+                "description": "Material asset file name. The .omtl suffix is optional."
+              },
+              "omtlContent": {
+                "type": "string",
+                "description": "Full OMTL file content to write. Must include JSON header with Shader and Pass, ---ENDJSON, ---BEGIN UIPROPERTY/---END UIPROPERTY, and a non-empty inline AUSL block matching Pass.Ausl with void vertex() and void fragment(). Pass.Ausl is required; placeholder blocks like ---BEGIN undefined are invalid."
+              }
+            },
+            "required": [
+              "operation",
+              "assetName",
+              "omtlContent"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "edit"
+              },
+              "guid": {
+                "type": "string",
+                "description": "Existing material GUID to rewrite in place."
+              },
+              "omtlContent": {
+                "type": "string",
+                "description": "Full OMTL file content to write. Must include JSON header with Shader and Pass, ---ENDJSON, ---BEGIN UIPROPERTY/---END UIPROPERTY, and a non-empty inline AUSL block matching Pass.Ausl with void vertex() and void fragment(). Pass.Ausl is required; placeholder blocks like ---BEGIN undefined are invalid."
+              }
+            },
+            "required": [
+              "operation",
+              "guid",
+              "omtlContent"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "read"
+              },
+              "guid": {
+                "type": "string",
+                "description": "Material asset GUID to read."
+              },
+              "assetPath": {
+                "type": "string",
+                "description": "Material asset path to read when guid is unavailable."
+              }
+            },
+            "required": [
+              "operation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "get_compile_status"
+              },
+              "guid": {
+                "type": "string",
+                "description": "Material asset GUID to inspect."
+              }
+            },
+            "required": [
+              "operation",
+              "guid"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "ganEffect",
+      "description": "List Loki-delivered preset GAN effects. Returned items include name and ganKey; add a preset with sceneOps General add using id set to the returned name and general.kind set to the returned ganKey.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "const": "list"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "builtinResource",
+      "description": "Create built-in resources and set resource properties. Read .agent/skills/asset-manager/SKILL.md first for DYEH resource workflows and unsupported asset abilities. Read AgentResources/Asset/schemas/resource_creation_templates*.json for creatable resource_type values, resource_type_schemas*.json for resource type property schemas, and builtin_resources*.json for built-in resource property descriptions and error hints. Use operation queryResourceKnowledge to discover resource types/properties, add_builtin_resource to create built-in resources, and set_resource_properties to modify writable resource properties.",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "add_builtin_resource"
+              },
+              "resource_type": {
+                "type": "string",
+                "description": "Resource type display name from AgentResources/Asset/schemas/resource_creation_templates*.json, for example \"Standard PBR\", \"Unlit\", or \"Render Texture\"."
+              },
+              "name": {
+                "type": "string",
+                "description": "Optional display name to apply after the resource is created."
+              }
+            },
+            "required": [
+              "operation",
+              "resource_type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "set_resource_properties"
+              },
+              "guid": {
+                "type": "string",
+                "description": "Resource asset GUID."
+              },
+              "properties": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "property": {
+                          "type": "string",
+                          "description": "Resource property name, for example _AlbedoColor or _AlbedoTexture."
+                        },
+                        "value": {
+                          "description": "Either a command-serialized value {type,data}, or a shorthand value. For resource references, use {guid}. For colors, use {r,g,b,a}."
+                        }
+                      },
+                      "required": [
+                        "property",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "description": "Array form, for example [{\"property\":\"_AlbedoColor\",\"value\":{...}}]."
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "Object shorthand, for example {\"_AlbedoColor\": {\"r\":1,\"g\":0,\"b\":0,\"a\":1}}."
+                  }
+                ],
+                "description": "Properties to set on the resource."
+              }
+            },
+            "required": [
+              "operation",
+              "guid",
+              "properties"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "const": "queryResourceKnowledge"
+              },
+              "query": {
+                "type": "string",
+                "description": "Optional text query, for example \"render texture\" or \"unlit\"."
+              },
+              "resource_type": {
+                "type": "string",
+                "description": "Optional exact resource type or builtin resource name to inspect."
+              },
+              "topK": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 50,
+                "description": "Maximum search results. Defaults to 10."
+              }
+            },
+            "required": [
+              "operation"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "effect_house_toolbox",
+      "description": "Effect House Engineering Toolbox. Access specialized sub-tools for scene manipulation, scripting, preview interaction, and runtime logs. For sceneOps, hide/show existing scene objects with payload.ops using op:\"modify\" and visible:false/true; visible-only changes can omit type. Read the relevant SKILL.md file to understand the required JSON payload structure before choosing parameters.",
+      "inputSchema": {}
+    },
+    {
+      "name": "ffmpegInfo",
+      "description": "Get the absolute path of the built-in ffmpeg executable from the editor process.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "imageCrop",
+      "description": "Deterministically crop one or more standalone PNG assets from an existing raster image. Use this only when the source regions or grid are explicitly known, instead of wrapping a raster image in SVG. Do not use it for Seedream AssetBoard generation or extraction; that remains internal to seedreamEffectWorkflowBatch. The tool does not trim, resize, compress, pad, or infer crop geometry.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative PNG, JPEG, or WebP source path."
+          },
+          "expectedSourceSize": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "height": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ],
+            "additionalProperties": false,
+            "description": "Optional exact source size assertion before cropping."
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "regions"
+                  },
+                  "outputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "left": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "top": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "width": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "height": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "outputPath": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "left",
+                        "top",
+                        "width",
+                        "height",
+                        "outputPath"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 64
+                  }
+                },
+                "required": [
+                  "type",
+                  "outputs"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "grid"
+                  },
+                  "rows": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 32
+                  },
+                  "columns": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 32
+                  },
+                  "sourceRect": {
+                    "type": "object",
+                    "properties": {
+                      "left": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "top": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "width": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "height": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    },
+                    "required": [
+                      "left",
+                      "top",
+                      "width",
+                      "height"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "gapX": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "gapY": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "remainderPolicy": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "distribute"
+                    ],
+                    "default": "error"
+                  },
+                  "outputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "row": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "column": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "outputPath": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "row",
+                        "column",
+                        "outputPath"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 64
+                  }
+                },
+                "required": [
+                  "type",
+                  "rows",
+                  "columns",
+                  "outputs"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "Explicit pixel regions or a deterministic grid crop."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allow replacing existing output PNG files. Defaults to false."
+          }
+        },
+        "required": [
+          "inputPath",
+          "selection"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "task_done",
+      "description": "Use this tool to indicate that you have completed the task. You should provide a comprehensive summary of the work done and the results achieved. After the final write_todos completes all todos, call this tool in the same model turn if no further work remains. Note: This tool will fail if there are still pending or in-progress tasks in your todo list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string",
+            "description": "A summary of the completed task and the results."
+          }
+        },
+        "required": [
+          "summary"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "code_search",
+      "description": "Code Knowledge Graph (CKG) Engine. The MOST EFFICIENT tool for exploring codebases. Use this tool when you need to understand code structure/relationships. Abilities: 1. Project Structure: List all classes/methods in the project (set mode=\"structure\", omit file_path). 2. File Analysis: Get detailed API outline of a specific file (set mode=\"structure\", provide file_path). 3. Symbol Navigation: Find where a symbol (class/function/variable/property) is defined (mode=\"definition\") or used (mode=\"references\").",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "structure",
+              "definition",
+              "references"
+            ],
+            "description": "The search mode"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "Target file to analyze. If the user mentions a file (e.g. \"in Game2D.ts\"), you MUST extract it here. If omitted, structure/definition performs a project-wide scan. Set relative_path=true when file_path is relative to the current project root. For references, omitting this triggers a global search (can be slow)."
+          },
+          "relative_path": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether file_path should be treated as relative to the current project root."
+          },
+          "symbol": {
+            "type": "string",
+            "description": "The symbol name to search for (REQUIRED for definition/references mode). E.g. class name, function name, variable name, or property name."
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "audioEffectWorkflow",
+      "description": "Generate one audio asset by calling the DYEH audio effectworkflow package, polling for MusicMeta, downloading the MP3, and saving it under Assets/.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clipKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Canonical audio clip key from Assets/design_brief_gamelogic.md for games, or Assets/design_brief.md for non-game visual effects."
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Final audio-generation prompt for this clip. Include the target duration directly in the prompt text."
+          },
+          "outputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative MP3 output path. Defaults to Assets/<clipKey>.mp3."
+          },
+          "isBgm": {
+            "type": "boolean",
+            "description": "Whether this clip is background music. Used for trace metadata."
+          }
+        },
+        "required": [
+          "clipKey",
+          "prompt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "audioEffectWorkflowBatch",
+      "description": "Generate requested game audio clips through the DYEH audio EffectWorkflow package. Writes Assets/<clip>.mp3 and supports non-blocking placeholder handoff for first full-build passes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clips": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "clipKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Canonical audio clip key from Assets/design_brief_gamelogic.md for games, or Assets/design_brief.md for non-game visual effects."
+                },
+                "prompt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Final audio-generation prompt for this clip. Include the target duration directly in the prompt text."
+                },
+                "isBgm": {
+                  "type": "boolean",
+                  "description": "Whether this clip is background music."
+                }
+              },
+              "required": [
+                "clipKey",
+                "prompt"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "description": "Audio clips to generate. They are generated concurrently."
+          },
+          "nonBlocking": {
+            "type": "boolean",
+            "description": "When true, write placeholder mp3s, start workflow generation in the background, and return immediately."
+          }
+        },
+        "required": [
+          "clips"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "imageCompress",
+      "description": "Remove chroma-key cutout colors, trim transparent margins, resize, and compress a generated image for game asset usage while preserving transparency when PNG/WebP is used.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative source image path."
+          },
+          "outputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative compressed output path."
+          },
+          "maxWidth": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Maximum output width."
+          },
+          "maxHeight": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Maximum output height."
+          },
+          "maxBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Best-effort output byte limit."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "webp"
+            ],
+            "description": "Output format. Defaults to png."
+          },
+          "inferencePath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Optional project-relative logical asset path used only for active visual brief size/chroma-key inference when outputPath is a staging path."
+          },
+          "chromaKeyColor": {
+            "type": "string",
+            "description": "Optional chroma-key color to convert to transparent alpha, e.g. #FF00FF."
+          },
+          "assetType": {
+            "type": "string",
+            "description": "Optional visual asset type. hud_bar normalizes the final PNG to the fixed-width HUD layout contract."
+          },
+          "preserveAspectRatio": {
+            "type": "boolean",
+            "description": "Use contain resizing instead of stretching to maxWidth and maxHeight."
+          }
+        },
+        "required": [
+          "inputPath",
+          "outputPath"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "seedreamEffectWorkflow",
+      "description": "Internal transport for one Seedream effectworkflow image task. Model-facing asset generation must use seedreamEffectWorkflowBatch.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assetKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "视觉资产 key，逐字取自当前视觉 Brief：游戏使用 Assets/design_brief_ui.md，非游戏画面特效使用 Assets/design_brief.md。"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Final image-generation prompt for this asset."
+          },
+          "outputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative raw output path. Defaults to a debug path outside Assets/."
+          },
+          "width": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Target request-box width in pixels. Batch generation prefers the active visual brief Generation Size and falls back to the asset-board crop when missing. The tool may expand the short side for extreme ratios; downstream processing preserves the cropped subject ratio within this box. Defaults to 1440."
+          },
+          "height": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Target request-box height in pixels. Batch generation prefers the active visual brief Generation Size and falls back to the asset-board crop when missing. The tool may expand the short side for extreme ratios; downstream processing preserves the cropped subject ratio within this box. Defaults to 2560."
+          },
+          "pollTimeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Seedream polling uses a fixed 180000 ms total timeout."
+          }
+        },
+        "required": [
+          "assetKey",
+          "prompt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "generateSettingReferenceImage",
+      "description": "Generate the required representative-state setting reference image before visual asset generation. It waits for all three Design Brief files, then sends only Assets/design_brief_ui.md, LockedStyle, the fixed layout reference, and Style RAG-selected user style images to the setting-prompt model. It asks the setting-prompt model for the final prompt, then asks the configured setting-image model to render the setting image. It writes .agent/setting-image/设定图.png and .agent/setting-image/setting_reference.md. Seedream and scene layout read the generated artifacts automatically.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userPrompt": {
+            "type": "string",
+            "description": "仅透传用户在设定图确认卡中提出的修改意见原文。禁止读取 design_brief 或任何上下文自行合成、改写或补充；首次生成设定图时不要传该字段，只有 refreshExistingSettingImage=true 且用户给出非空修改意见时才原样传入。"
+          },
+          "refreshExistingSettingImage": {
+            "type": "boolean",
+            "description": "Set true only when the user explicitly asks to regenerate or refresh the project setting image."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "seedreamEffectWorkflowBatch",
+      "description": "Generate project PNG assets. Games reuse the current completed setting image and automatically await or rebuild its AssetBoard when needed; this tool does not refresh the setting image or visual direction. Non-game visual effects require subagent-authored per-asset prompts and run direct text-to-image without setting-image or AssetBoard preparation. Moderation recovery remains automatic.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "assetKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "视觉资产 key，逐字取自当前视觉 Brief，并包含 .png 后缀。"
+                },
+                "prompt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Required for non-game visual-effect direct generation. Ignored for game AssetBoard generation."
+                }
+              },
+              "required": [
+                "assetKey"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "description": "Required with a non-empty prompt for every Seedream asset in non-game visual-effect generation; game AssetBoard create/retry/fullRebuild ignores this list, while targeted regenerate uses only the requested keys."
+          },
+          "nonBlocking": {
+            "type": "boolean",
+            "description": "Game mode=create uses background jobs for live UI progress when streaming is available, but Root waits for completion before scene assembly; fullRebuild requires false."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "create",
+              "retryFailed",
+              "regenerate",
+              "fullRebuild"
+            ],
+            "description": "create is default; regenerate/fullRebuild require forceRegenerate. Moderation recovery is automatic."
+          },
+          "forceRegenerate": {
+            "type": "boolean",
+            "description": "Required to overwrite completed assets in regenerate/fullRebuild."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "svgConvert",
+      "description": "Convert a project-local intermediate SVG source to an explicit PNG or GIF output under Assets/. Keep conversion-only SVG files outside Assets/ so the editor does not import them as runtime SVG assets.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sourcePath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project-relative SVG source path, normally .agent/asset-processing/svg/<key>.svg."
+          },
+          "svgPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Deprecated alias for sourcePath."
+          },
+          "outputPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Explicit project-relative output path under Assets/. Use .png for static output and .gif for animated output."
+          },
+          "animation": {
+            "type": "object",
+            "properties": {
+              "canvas": {
+                "type": "object",
+                "properties": {
+                  "width": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Canvas width in SVG units."
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Canvas height in SVG units."
+                  },
+                  "viewBox": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "description": "SVG viewBox in the same coordinate space as transforms."
+                  }
+                },
+                "required": [
+                  "width",
+                  "height",
+                  "viewBox"
+                ],
+                "additionalProperties": false,
+                "description": "Optional. If omitted, canvas will be inferred from the SVG file when possible."
+              },
+              "fps": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60,
+                "description": "Frames per second."
+              },
+              "durationMs": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "description": "Animation duration in milliseconds."
+              },
+              "tracks": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "SVG element id to animate."
+                        },
+                        "prop": {
+                          "const": "translate",
+                          "description": "Translate in SVG user units."
+                        },
+                        "loop": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to loop this track. Defaults to true."
+                        },
+                        "loopPeriodMs": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Optional loop period in milliseconds. Defaults to durationMs if omitted."
+                        },
+                        "keyframes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "t": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keyframe time in milliseconds (ms)."
+                              },
+                              "ease": {
+                                "type": "string",
+                                "enum": [
+                                  "linear",
+                                  "sineInOut",
+                                  "cubicInOut",
+                                  "step"
+                                ],
+                                "description": "Optional easing name. Defaults to linear."
+                              },
+                              "value": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "description": "Translation [x, y] in SVG user units."
+                              }
+                            },
+                            "required": [
+                              "t",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1,
+                          "description": "Keyframes for translate."
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "prop",
+                        "keyframes"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "SVG element id to animate."
+                        },
+                        "prop": {
+                          "const": "rotate",
+                          "description": "Rotate in degrees around an origin point."
+                        },
+                        "origin": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "description": "Rotation origin [cx, cy] in SVG user units. Defaults to canvas center."
+                        },
+                        "loop": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to loop this track. Defaults to true."
+                        },
+                        "loopPeriodMs": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Optional loop period in milliseconds. Defaults to durationMs if omitted."
+                        },
+                        "keyframes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "t": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keyframe time in milliseconds (ms)."
+                              },
+                              "ease": {
+                                "type": "string",
+                                "enum": [
+                                  "linear",
+                                  "sineInOut",
+                                  "cubicInOut",
+                                  "step"
+                                ],
+                                "description": "Optional easing name. Defaults to linear."
+                              },
+                              "value": {
+                                "type": "number",
+                                "description": "Rotation angle in degrees."
+                              }
+                            },
+                            "required": [
+                              "t",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1,
+                          "description": "Keyframes for rotate."
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "prop",
+                        "keyframes"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "SVG element id to animate."
+                        },
+                        "prop": {
+                          "const": "scale",
+                          "description": "Scale around an origin point."
+                        },
+                        "origin": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "description": "Scale origin [cx, cy] in SVG user units. Defaults to canvas center."
+                        },
+                        "loop": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to loop this track. Defaults to true."
+                        },
+                        "loopPeriodMs": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Optional loop period in milliseconds. Defaults to durationMs if omitted."
+                        },
+                        "keyframes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "t": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keyframe time in milliseconds (ms)."
+                              },
+                              "ease": {
+                                "type": "string",
+                                "enum": [
+                                  "linear",
+                                  "sineInOut",
+                                  "cubicInOut",
+                                  "step"
+                                ],
+                                "description": "Optional easing name. Defaults to linear."
+                              },
+                              "value": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "description": "Scale factors [sx, sy]."
+                              }
+                            },
+                            "required": [
+                              "t",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1,
+                          "description": "Keyframes for scale."
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "prop",
+                        "keyframes"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "SVG element id to animate."
+                        },
+                        "prop": {
+                          "const": "opacity",
+                          "description": "Opacity in [0..1]. Values are clamped."
+                        },
+                        "loop": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to loop this track. Defaults to true."
+                        },
+                        "loopPeriodMs": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Optional loop period in milliseconds. Defaults to durationMs if omitted."
+                        },
+                        "keyframes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "t": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keyframe time in milliseconds (ms)."
+                              },
+                              "ease": {
+                                "type": "string",
+                                "enum": [
+                                  "linear",
+                                  "sineInOut",
+                                  "cubicInOut",
+                                  "step"
+                                ],
+                                "description": "Optional easing name. Defaults to linear."
+                              },
+                              "value": {
+                                "type": "number",
+                                "description": "Opacity value. Will be clamped to [0..1]."
+                              }
+                            },
+                            "required": [
+                              "t",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "minItems": 1,
+                          "description": "Keyframes for opacity."
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "prop",
+                        "keyframes"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "default": [],
+                "description": "Animation tracks. Each track targets an SVG element id."
+              }
+            },
+            "required": [
+              "fps",
+              "durationMs"
+            ],
+            "additionalProperties": false,
+            "description": "Optional. If provided, outputs GIF; otherwise outputs PNG."
+          }
+        },
+        "required": [
+          "outputPath"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "compileProject",
+      "description": "Run the current project TypeScript verification with default settings. Call it after the editing tool has returned when you need to verify the latest persisted code; never run it in parallel with a dependent Edit, Write, or setupGameScript call. It waits for pending generated asset jobs, returns TypeScript diagnostics, and ensures a detected game entry is attached without modifying source files.",
+      "inputSchema": null
+    }
+  ],
+  "editorVersion": "9.4.0"
+}
