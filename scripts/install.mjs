@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {commands,extracted} from '../src/catalog.mjs';
-import {detectEditor,version,sha256} from '../src/version.mjs';
+import {detectEditor,version,sha256,assertEditorCompatibility} from '../src/version.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 let previous={};
 try{previous=JSON.parse(await fs.readFile(path.join(root,'config.local.json'),'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
@@ -11,8 +11,7 @@ const workspace=process.env.XIANGSU_EFFECT_WORKSPACE??previous.effectWorkspace??
 if(!workspace)throw Error('首次安装请设置 XIANGSU_EFFECT_WORKSPACE 为特效工程总目录');
 const local=process.env.LOCALAPPDATA;
 const editor=await detectEditor(process.env.XIANGSU_EDITOR_ROOT);
-if(editor.version!=='9.4.0')throw Error('EDITOR_VERSION_NOT_AUDITED: '+editor.version);
-if(sha256(await fs.readFile(path.join(editor.installRoot,'Resources/agent-server.exe')))!==extracted.sha256)throw Error('CATALOG_SOURCE_MISMATCH: 官方包与审计清单不一致，请先提取候选并审计');
+assertEditorCompatibility(editor.version,sha256(await fs.readFile(path.join(editor.installRoot,'Resources/agent-server.exe'))),extracted.sha256);
 const config={...previous,effectWorkspace:workspace,editorVersion:editor.version,editorFileVersion:editor.fileVersion,stateRoot:previous.stateRoot??path.join(local,'CodexXiangsuMCP/sessions'),allowedRoots:previous.allowedRoots??[workspace],catalogPath:path.join(root,'commands.runtime.json'),skillsRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentSkills'),resourcesRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentResources')};
 const pluginParent=path.join(local,`DouyinAR/Plugins/v${editor.version}/Local`);
 await fs.mkdir(pluginParent,{recursive:true});

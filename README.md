@@ -2,16 +2,18 @@
 
 让 AI Agent 通过 Model Context Protocol（MCP）操作抖音像塑：编辑场景、绑定素材、初始化 TypeScript 脚本、编译、截图和验证交互。
 
-**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Verified target: Windows + Xiangsu 9.4.0. International TikTok Effect House compatibility is not verified.**
+**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Verified targets: Windows + Xiangsu 9.4.0 and 9.4.1 (core regression workflows). International TikTok Effect House compatibility is not verified.**
 
-- 项目版本：0.2.0，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
+- 项目版本：0.2.1，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
 - 当前提供 105 个工具入口；入口数量包含兼容入口和明确未接入的云端入口，**不代表 105 项均已实测**。
 - 独立社区项目，非字节跳动、抖音或 TikTok 官方产品。不宣称完整替代官方 Agent / Ask AI。
 - [安装](#安装) · [功能与验证状态](#功能与验证状态) · [AI 使用指引](#ai-使用指引) · [English quick start](#english-quick-start)
 
 ## 功能与验证状态
 
-“已实测”指在像塑 9.4.0 的测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md)。
+“已实测”指在像塑测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md)。
+
+**0.2.1 已通过像塑 9.4.1 的核心实机回归与 18 项自动测试。** 现有命令参数结构未变；已更新安装校验，并修正新版音量换算的测试与说明。新版新增的两项预览操作尚未接入。详见 [9.4.1 审查记录](docs/AUDIT-9.4.1.md)。
 
 | 能力 | 当前实现 | 验证情况 |
 |---|---|---|
@@ -61,7 +63,7 @@
 
 ### 1. 准备环境
 
-- Windows，安装 **像塑桌面版 9.4.0**，先确认能够正常打开工程。
+- Windows，安装 **像塑桌面版 9.4.0 或已审计的 9.4.1**，先确认能够正常打开工程。
 - Node.js：本项目验证环境为 **24.14.1**；建议使用 Node.js 24。
 - PowerShell 7（`pwsh.exe`）、Git，以及支持本地 stdio MCP 的客户端。
 - 一个独立特效工程目录，例如 `D:/Effects`。源码仓库目录与特效工程目录是两回事。
@@ -170,6 +172,7 @@ npm test
 
 ```powershell
 node scripts/blank-setup.mjs 'D:/Effects/DisposableBlankTest'
+node scripts/blank-check.mjs 'D:/Effects/DisposableBlankTest'
 node scripts/blank-play.mjs 'D:/Effects/DisposableBlankTest'
 ```
 
@@ -179,7 +182,7 @@ node scripts/blank-play.mjs 'D:/Effects/DisposableBlankTest'
 
 ## English quick start
 
-1. Install Windows, Xiangsu **9.4.0**, PowerShell 7, Git and Node.js 24.
+1. Install Windows, Xiangsu **9.4.0 or audited 9.4.1**, PowerShell 7, Git and Node.js 24.
 2. Clone this repository and run `npm ci --ignore-scripts`, then `npm test`.
 3. Set `XIANGSU_EFFECT_WORKSPACE` to your effect projects directory and run `node scripts/install.mjs`. Set `XIANGSU_EDITOR_ROOT` only for a custom editor installation.
 4. Save your work and reopen the editor project to load the user plugin.
