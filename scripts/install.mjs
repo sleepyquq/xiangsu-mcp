@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {commands,extracted} from '../src/catalog.mjs';
-import {detectEditor,version,sha256,assertEditorCompatibility} from '../src/version.mjs';
+import {detectEditor,version,sha256,assessEditorCompatibility} from '../src/version.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 let previous={};
 try{previous=JSON.parse(await fs.readFile(path.join(root,'config.local.json'),'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
@@ -11,7 +11,10 @@ const workspace=process.env.XIANGSU_EFFECT_WORKSPACE??previous.effectWorkspace??
 if(!workspace)throw Error('首次安装请设置 XIANGSU_EFFECT_WORKSPACE 为特效工程总目录');
 const local=process.env.LOCALAPPDATA;
 const editor=await detectEditor(process.env.XIANGSU_EDITOR_ROOT);
-assertEditorCompatibility(editor.version,sha256(await fs.readFile(path.join(editor.installRoot,'Resources/agent-server.exe'))),extracted.sha256);
+let binaryHash=null;
+try{binaryHash=sha256(await fs.readFile(path.join(editor.installRoot,'Resources/agent-server.exe')));}catch(e){if(e.code!=='ENOENT')throw e;}
+const compatibility=assessEditorCompatibility(editor.version,binaryHash,extracted.sha256);
+if(compatibility.warning)console.warn('XIANGSU_COMPATIBILITY_UNVERIFIED: '+compatibility.warning);
 const config={...previous,effectWorkspace:workspace,editorVersion:editor.version,editorFileVersion:editor.fileVersion,stateRoot:previous.stateRoot??path.join(local,'CodexXiangsuMCP/sessions'),allowedRoots:previous.allowedRoots??[workspace],catalogPath:path.join(root,'commands.runtime.json'),skillsRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentSkills'),resourcesRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentResources')};
 const pluginParent=path.join(local,`DouyinAR/Plugins/v${editor.version}/Local`);
 await fs.mkdir(pluginParent,{recursive:true});
@@ -30,4 +33,4 @@ await fs.writeFile(path.join(dest,'plugin.manifest.json'),JSON.stringify({name,v
 // 用正式桥接替换旧调查插件的启动条目，旧文件和配置备份仍保留。
 old.plugins=old.plugins.filter(p=>!['CodexCockpitProbe',name].includes(p.name));old.plugins.push({name,version,loadOnStartup:true});
 await fs.writeFile(configPath,JSON.stringify(old,null,2));
-console.log(JSON.stringify({plugin:dest,backupDir,requiresEditorReload:true,config:path.join(root,'config.local.json')}));
+console.log(JSON.stringify({plugin:dest,backupDir,requiresEditorReload:true,config:path.join(root,'config.local.json'),editorCompatibility:compatibility}));

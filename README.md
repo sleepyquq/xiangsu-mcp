@@ -2,7 +2,7 @@
 
 让 AI Agent 通过 Model Context Protocol（MCP）操作抖音像塑：编辑场景、绑定素材、初始化 TypeScript 脚本、编译、截图和验证交互。
 
-**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Verified targets: Windows + Xiangsu 9.4.0 and 9.4.1 (core regression workflows). International TikTok Effect House compatibility is not verified.**
+**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Xiangsu 9.4.0 and later can be installed by default; only Windows + Xiangsu 9.4.0 and 9.4.1 have passed core regression workflows. Later versions may behave differently and require user testing. International TikTok Effect House compatibility is not verified.**
 
 - 项目版本：0.2.1，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
 - 当前提供 105 个工具入口；入口数量包含兼容入口和明确未接入的云端入口，**不代表 105 项均已实测**。
@@ -33,13 +33,13 @@
 
 ### 尚未支持或不能保证的内容
 
-- 国际版 Effect House、macOS、其他像塑版本以及国内外工程互通，均未验证。
+- 国际版 Effect House、macOS、像塑 9.4.0/9.4.1 之外的版本以及国内外工程互通，均未验证。
 - 不支持官方设计稿自动布局补全、完整 HUD 归一化、SVG 动画时间线。
 - 多步操作不是原子事务；部分失败需读回确认，不能盲目重试写入。
 - 试玩依赖已挂载且能启动的 Game2D 入口；运行库结构不匹配会拒绝插入临时代码。
 - 试玩期间用户改动运行库时，会保留冲突和备份；不会强行覆盖用户修改。
 - 自动提取 Schema 尚不能完整表达所有 Zod refine / transform，最终仍由编辑器校验。
-- 使用内部编辑器接口。官方更新后需检查兼容性；安装器限制已审计版本与源包哈希，不保证自动兼容新版本。
+- 使用内部编辑器接口。像塑 9.4.0 及之后版本默认允许安装；目前仅 9.4.0、9.4.1 通过核心实测。后续版本可能出现功能差异，需在测试工程中自行验证。
 
 ## 安装
 
@@ -52,7 +52,7 @@
 
 先阅读仓库 README.md 和 docs/SKILL-ADAPTER.md，检查 Windows、PowerShell 7、Git、Node.js 和像塑版本。将仓库克隆到合适的工具目录（已有仓库则复用），安装依赖并运行测试；设置 XIANGSU_EFFECT_WORKSPACE 后运行插件安装脚本。自定义像塑安装位置时设置 XIANGSU_EDITOR_ROOT。
 
-根据我正在使用的 MCP 客户端配置 stdio 服务，保留已有配置，使用 node 和 src/server.mjs 的绝对路径。不要绕过版本/哈希检查，不要关闭有未保存工作的编辑器。如果需要我保存工作并重新打开工程，明确告诉我。
+根据我正在使用的 MCP 客户端配置 stdio 服务，保留已有配置，使用 node 和 src/server.mjs 的绝对路径。若安装器提示版本或官方包未实测，继续安装，并提醒我在测试工程中验证实际功能；不要绕过命令清单或桥接一致性校验，也不要关闭有未保存工作的编辑器。如果需要我保存工作并重新打开工程，明确告诉我。
 
 安装后重新连接 MCP，调用 xiangsu_sessions 核对工程路径、xiangsu_capabilities 查看能力、eh_getScene 验证真实连通；不要修改工程。若缺少客户端配置权限或工程窗口尚未打开，说明准确的剩余步骤，不要声称安装验证成功。
 
@@ -63,12 +63,12 @@
 
 ### 1. 准备环境
 
-- Windows，安装 **像塑桌面版 9.4.0 或已审计的 9.4.1**，先确认能够正常打开工程。
+- Windows，安装 **像塑桌面版 9.4.0 或之后版本**，先确认能够正常打开工程；目前只在 **9.4.0、9.4.1** 完成核心实测。
 - Node.js：本项目验证环境为 **24.14.1**；建议使用 Node.js 24。
 - PowerShell 7（`pwsh.exe`）、Git，以及支持本地 stdio MCP 的客户端。
 - 一个独立特效工程目录，例如 `D:/Effects`。源码仓库目录与特效工程目录是两回事。
 
-像塑可从 [官方网站](https://effect.douyin.com/) 获取。官网可能只提供更新版本；如果当前安装包不匹配审计版本/哈希，请等待适配，不要绕过安装检查。
+像塑可从 [官方网站](https://effect.douyin.com/) 获取。新版本或同版本不同安装包会显示未验证提示，但仍可安装；请先在可丢弃的测试工程中验证连接、场景读回及所需功能，不能把安装成功视作功能兼容。
 
 ### 2. 克隆并安装依赖
 
@@ -92,7 +92,7 @@ $env:XIANGSU_EFFECT_WORKSPACE = 'D:/Effects'
 node scripts/install.mjs
 ```
 
-安装器会核对像塑版本及 `agent-server.exe` 哈希，生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.0`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
+安装器会核对像塑版本及 `agent-server.exe` 哈希：9.4.0/9.4.1 对应实测包标记为已验证，9.4.0 之后的其他版本或不同安装包给出未验证提示并继续安装。它会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.1`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
 
 安装完成后，**先保存已有工作，再关闭并重新打开像塑工程窗口**，让插件加载。不要直接重启有未保存编辑的窗口。保持源码仓库路径不变，用户插件会引用该目录。
 
@@ -130,8 +130,9 @@ node scripts/install.mjs
 
 | 情况 | 处理方式 |
 |---|---|
-| EDITOR_VERSION_NOT_AUDITED | 当前版本不在已审计范围，需完成版本适配 |
-| CATALOG_SOURCE_MISMATCH | 即使版本号相同，源包也可能不同；需重新审计，不能只改哈希绕过 |
+| XIANGSU_COMPATIBILITY_UNVERIFIED | 版本或官方包未实测；允许安装，请在测试工程中自行验证所需功能 |
+| EDITOR_VERSION_TOO_OLD | 当前编辑器早于 9.4.0，不在默认兼容范围 |
+| CATALOG_BASELINE_NOT_AUDITED | 仓库命令清单基线不匹配，需核对源码和清单后再安装 |
 | 查不到会话 | 确认用户插件已加载，并已重新打开实际工程窗口 |
 | 工程路径被拒绝 | 检查 config.local.json 的 effectWorkspace / allowedRoots，确认真实工程位于允许范围 |
 | 客户端工具列表还是旧的 | 重启/重新连接 MCP 服务；新开对话不一定重启底层进程 |
@@ -182,7 +183,7 @@ node scripts/blank-play.mjs 'D:/Effects/DisposableBlankTest'
 
 ## English quick start
 
-1. Install Windows, Xiangsu **9.4.0 or audited 9.4.1**, PowerShell 7, Git and Node.js 24.
+1. Install Windows, Xiangsu **9.4.0 or later**, PowerShell 7, Git and Node.js 24. Core workflows have only been tested on 9.4.0 and 9.4.1; test later versions yourself.
 2. Clone this repository and run `npm ci --ignore-scripts`, then `npm test`.
 3. Set `XIANGSU_EFFECT_WORKSPACE` to your effect projects directory and run `node scripts/install.mjs`. Set `XIANGSU_EDITOR_ROOT` only for a custom editor installation.
 4. Save your work and reopen the editor project to load the user plugin.
