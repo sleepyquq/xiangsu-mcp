@@ -51,11 +51,26 @@ test('子目录图片按资源 GUID 和 Texture 字段类型绑定',async()=>{
  const result=await sceneOps({ops:[{op:'modify',id:'Label',textureKey:'nested'}]},c);
  assert.equal(result.success,true);assert.equal(result.results[0].object.texture.guid,'new');
 });
-test('文字显式尺寸必须配合 fixedSize，预检拒绝且不写入',async()=>{
+test('文字显式尺寸必须配合 fixedSize/fixedWidth，dynamic 预检拒绝且不写入',async()=>{
  let writes=0;const c={call:async name=>name==='getScene'?fixture():name==='getAllAssets'?[]:(writes++,{success:true})};
  await assert.rejects(()=>sceneOps({ops:[{op:'modify',id:'Label',content:'先改'},{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100,width:200,height:50}]},c),/TEXT_SIZE_REQUIRES_FIXED_BOX/);
  assert.equal(writes,0);
  const objects=(await sceneSpec(c)).objects;
  assert.doesNotThrow(()=>normalizeOps([{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100,width:200,height:50,boxDimension:'fixedSize'}],objects,[]));
  assert.doesNotThrow(()=>normalizeOps([{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100}],objects,[]));
+});
+test('fixedWidth 文字只核对宽度，高度随内容变化不算失败且标记未验证',async()=>{
+ const live=fixture(),node=live.renderGroups[0].sceneObjects[0],[transform,text]=node.components;
+ const c={call:async(name,p)=>{
+  if(name==='getScene')return live;if(name==='getAllAssets')return [];
+  if(name==='applySceneOps'){assert.deepEqual(p.ops[0].transform.size,{width:300,height:999});transform.offsets.data={...transform.offsets.data,y:400};}
+  if(name==='setComponent')for(const item of p.properties)text[item.property]=field(item.value.data);
+  return {success:true};
+ }};
+ const result=await sceneOps({ops:[{op:'modify',id:'Label',boxDimension:'fixedWidth',width:300,height:999}]},c);
+ assert.equal(result.success,true);assert.equal(result.results[0].object.width,300);assert.equal(result.results[0].object.height,40);
+ assert.ok(result.results[0].verification.verifiedFields.includes('width'));assert.ok(!result.results[0].verification.verifiedFields.includes('height'));
+ assert.ok(result.results[0].verification.unverifiedFields.includes('height'));
+ text.boxDimension=field('Dynamic');
+ await assert.rejects(()=>sceneOps({ops:[{op:'modify',id:'Label',width:300,height:40}]},c),/TEXT_SIZE_REQUIRES_FIXED_BOX/);
 });

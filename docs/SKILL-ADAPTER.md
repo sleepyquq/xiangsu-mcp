@@ -64,7 +64,7 @@
 
 | 工具或依赖 | 当前限制与使用方式 |
 |---|---|
-| `sceneOps` / `eh_applySceneOps` | sceneOps 接入平铺到 transform/image/text 等嵌套结构的转换，整批预检后逐项执行与读回。检查 results 中 verification.errors 和 unverifiedFields；不是原子事务，失败时此前步骤可能已生效。eh_applySceneOps 只接受原生嵌套结构。textContainerId 自动布局尚不支持，显式给矩形。Text 默认按内容自动撑开：显式 width/height 必须同时传 boxDimension:'fixedSize'，否则预检报 TEXT_SIZE_REQUIRES_FIXED_BOX；想让尺寸随内容变化就省略 width/height |
+| `sceneOps` / `eh_applySceneOps` | sceneOps 接入平铺到 transform/image/text 等嵌套结构的转换，整批预检后逐项执行与读回。检查 results 中 verification.errors 和 unverifiedFields；不是原子事务，失败时此前步骤可能已生效。eh_applySceneOps 只接受原生嵌套结构。textContainerId 自动布局尚不支持，显式给矩形。Text 的 boxDimension 取 dynamic（默认，宽高随内容）/fixedWidth（宽度固定，高度随内容）/fixedSize（宽高固定）。dynamic 下传 width/height 会在预检报 TEXT_SIZE_REQUIRES_FIXED_BOX；fixedWidth 只核对 width，height 列入 unverifiedFields；想让尺寸随内容变化就省略 width/height |
 | `sceneSpec` | objects 由实时 getScene/getAllAssets 投影，包含 GUID、组件 ID、显隐及可计算矩形；不依赖 Assets/scene.json。使用官方 720×1280 设计坐标，复杂旋转/缩放的几何不作可靠承诺 |
 | `setupGameScript` / `userScript` / `compileProject` | 新入口支持 resourceBindings:[{property,type:Texture或Material,guid}]；旧入口保留 action/componentProperties。依赖冲突默认保留用户修改；确需升级，先读回哈希，再显式传 expectedRuntimeHashes。编译通过不等于玩法已验证 |
 | `builtinResource` / `materialAsset` | 有本地映射；资源知识查询只搜索原始 schema，没有官方覆盖层融合。字段缺失时查询实际对象，不猜测字段；复杂资源、材质仍待专项验证 |

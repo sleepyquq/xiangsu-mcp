@@ -70,6 +70,7 @@ export function normalizeOps(ops,objects,assets){
   if(!type)throw Error('新增对象必须指定 type');
   const native={op:op.op,id:op.id,type,...pick(op,['groupId','visible','extensions','general'])};
   if(current?.guid)native.guid=current.guid;
+  let textBox;
   const expected={...current,id:op.id,type,...pick(op,['groupId','visible'])};
   if(op.op!=='remove'){
    const transform={};
@@ -107,8 +108,9 @@ export function normalizeOps(ops,objects,assets){
     if(Object.keys(image).length)native.image=image;
     if(op.color!==undefined&&!/^#[\da-f]{6}$/i.test(op.color))throw Error('Image color 使用 #RRGGBB');
    }else if(type==='Text'){
-    // 文字默认按内容自动撑开，显式 width/height 只有 fixedSize 才会保留；提前拒绝，避免批量中途读回失败。
-    if(transform.size&&(op.boxDimension??current?.style?.boxDimension)!=='fixedSize')throw Error(`TEXT_SIZE_REQUIRES_FIXED_BOX: ${op.id} 设置 width/height 时需同时指定 boxDimension:'fixedSize'；否则尺寸由内容决定，请省略 width/height`);
+    // dynamic（默认）宽高都由内容决定，fixedWidth 只保留宽度；提前拒绝，避免批量中途读回失败。
+    textBox=op.boxDimension??current?.style?.boxDimension;
+    if(transform.size&&!['fixedWidth','fixedSize'].includes(textBox))throw Error(`TEXT_SIZE_REQUIRES_FIXED_BOX: ${op.id} 设置 width/height 时需指定 boxDimension 为 'fixedSize'（宽高固定）或 'fixedWidth'（仅宽度固定，高度随内容）；否则尺寸由内容决定，请省略 width/height`);
     const style=pick(op,['fontSize','color','shadow','stroke','boxDimension','lineBreakType','horizontalAlignment','verticalAlignment','lineSpacing']);
     native.text={...(op.content!==undefined?{content:op.content}:{}),...(Object.keys(style).length?{style}:{})};
    }else if(type==='Audio'){
@@ -119,7 +121,7 @@ export function normalizeOps(ops,objects,assets){
   const index=predicted.indexOf(current);
   if(!current&&['x','y','width','height'].every(k=>Number.isFinite(expected[k])))expected.geometrySource='planned-screen-transform';
   if(op.op==='remove')predicted.splice(index,1);else if(current)predicted[index]=expected;else predicted.push(expected);
-  plans.push({native,input:op,expected});
+  plans.push({native,input:op,expected,textBox});
  }
  return plans;
 }
@@ -138,7 +140,7 @@ export async function sceneOps(p,c){
   let wrote=false;
   try{
    const state=await sceneSpec(c),[plan]=normalizeOps([input],state.objects,assets);
-   const {native,expected}=plan;
+   const {native,expected,textBox}=plan;
    wrote=true;
    // 原生图片 DSL 按文件名查找时会漏掉子目录素材；已解析的资源直接按 GUID 绑定。
    if(native.type==='Image'&&input.op==='add'){
@@ -187,7 +189,7 @@ export async function sceneOps(p,c){
     check('exists',true,!!actual);
     if(actual){
      for(const key of ['x','y'])if(native.transform?.position)check(key,expected[key],actual[key],0.5);
-     for(const key of ['width','height'])if(native.transform?.size)check(key,expected[key],actual[key],0.5);
+     for(const key of ['width','height'])if(native.transform?.size&&!(key==='height'&&textBox==='fixedWidth'))check(key,expected[key],actual[key],0.5);
      if(input.textureKey)check('texture',expected.texture.guid,actual.texture?.guid);
      if(input.content!==undefined)check('content',input.content,actual.text);
      if(input.visible!==undefined)check('visible',input.visible,actual.visible);
@@ -197,7 +199,7 @@ export async function sceneOps(p,c){
      for(const key of ['fontSize','boxDimension','horizontalAlignment','verticalAlignment'])if(input[key]!==undefined)check(key,input[key],actual.style?.[key]);
     }
    }
-   const unverifiedFields=Object.keys(input).filter(k=>['extensions','general','clip','isBgm','componentGuid','effectType','materialGuid','shadow','stroke','lineBreakType','lineSpacing','groupId'].includes(k)&&!(k==='groupId'&&input.target==='group'));
+   const unverifiedFields=Object.keys(input).filter(k=>(k==='height'&&textBox==='fixedWidth')||['extensions','general','clip','isBgm','componentGuid','effectType','materialGuid','shadow','stroke','lineBreakType','lineSpacing','groupId'].includes(k)&&!(k==='groupId'&&input.target==='group'));
    results.push({index,success:errors.length===0,result,verification:{success:errors.length===0,verifiedFields,unverifiedFields,errors},object:actual});
    if(errors.length)return {success:false,applied:results.length,results,failedIndex:index,retrySafe:false};
   }catch(error){

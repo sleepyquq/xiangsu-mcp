@@ -36,7 +36,7 @@
 - 国际版 Effect House、macOS、像塑 9.4.0/9.4.1 之外的版本以及国内外工程互通，均未验证。
 - 不支持官方设计稿自动布局补全、完整 HUD 归一化、SVG 动画时间线。
 - 多步操作不是原子事务；部分失败需读回确认，不能盲目重试写入。
-- Text 默认按内容自动撑开；设置 width/height 时须同时指定 `boxDimension:'fixedSize'`，否则预检直接拒绝（TEXT_SIZE_REQUIRES_FIXED_BOX）。
+- Text 默认（`boxDimension:'dynamic'`）按内容自动撑开，此时设置 width/height 会在预检直接拒绝（TEXT_SIZE_REQUIRES_FIXED_BOX）。需要固定尺寸请用 `fixedSize`；只固定宽度用 `fixedWidth`，此时只核对宽度，高度随内容。
 - 试玩依赖已挂载且能启动的 Game2D 入口；运行库结构不匹配会拒绝插入临时代码。
 - 试玩期间用户改动运行库时，会保留冲突和备份；不会强行覆盖用户修改。
 - 自动提取 Schema 尚不能完整表达所有 Zod refine / transform，最终仍由编辑器校验。
