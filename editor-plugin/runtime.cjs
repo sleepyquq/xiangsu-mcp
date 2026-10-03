@@ -4,6 +4,20 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const Ajv=require('ajv');
 const runtimeHash=crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
 const inside=(p,r)=>{const rel=path.relative(r,p);return rel===''||(!rel.startsWith('..'+path.sep)&&rel!=='..'&&!path.isAbsolute(rel));};
+// 只读取 PNG/JPEG 头部尺寸；编辑器内置 Node 与用户 Node 的原生模块 ABI 不一定一致，不能在此加载 sharp。
+function imageSize(b){
+ if(b.length>=24&&b.readUInt32BE(0)===0x89504e47&&b.toString('latin1',12,16)==='IHDR')return {width:b.readUInt32BE(16),height:b.readUInt32BE(20)};
+ if(b.length>=4&&b[0]===0xff&&b[1]===0xd8){
+  for(let i=2;i+9<b.length;){
+   if(b[i]!==0xff){i++;continue;}
+   const m=b[i+1];if(m===0xff){i++;continue;}
+   if(m===0xd8||m===0x01||(m>=0xd0&&m<=0xd7)){i+=2;continue;}
+   if(m>=0xc0&&m<=0xcf&&![0xc4,0xc8,0xcc].includes(m))return {width:b.readUInt16BE(i+7),height:b.readUInt16BE(i+5)};
+   i+=2+b.readUInt16BE(i+2);
+  }
+ }
+ throw Error('SCREENSHOT_IMAGE_INVALID: 无法识别截图尺寸（仅支持 PNG/JPEG）');
+}
 function canonical(p){return fs.realpathSync.native(path.resolve(p));}
 function checkedPath(value,root,allowMissing=false){
  const full=path.resolve(root,value);let existing=full;
@@ -92,7 +106,7 @@ class Runtime {
   if(spec.name==='saveScreenshot'&&params.path&&result?.success!==false){
    const data=result?.base64?result:result?.result;
    if(!data?.base64||!/^image\//.test(data.mimeType??''))throw Error('SCREENSHOT_IMAGE_MISSING: 未返回可落盘图像');
-   const sharp=require('sharp'),bytes=Buffer.from(data.base64,'base64'),meta=await sharp(bytes).metadata();
+   const bytes=Buffer.from(data.base64,'base64'),meta=imageSize(bytes);
    fs.mkdirSync(path.dirname(params.path),{recursive:true});
    const tmp=params.path+'.mcp-'+crypto.randomUUID();fs.writeFileSync(tmp,bytes);fs.renameSync(tmp,params.path);
    return {...result,path:params.path,saved:true,width:meta.width,height:meta.height,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
@@ -128,4 +142,4 @@ class Runtime {
  }
  stop(){this.closed=true;clearInterval(this.timer);clearInterval(this.heartbeat);if(this.playListener)this.playEvents?.off?.('PreviewRenderMsg',this.playListener);try{fs.unlinkSync(path.join(this.dir,'session.json'));}catch{}}
 }
-module.exports={Runtime,inside,checkedPath,backupProject};
+module.exports={imageSize,Runtime,inside,checkedPath,backupProject};

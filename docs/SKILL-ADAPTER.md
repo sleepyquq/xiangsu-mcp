@@ -64,12 +64,12 @@
 
 | 工具或依赖 | 当前限制与使用方式 |
 |---|---|
-| `sceneOps` / `eh_applySceneOps` | sceneOps 接入平铺到 transform/image/text 等嵌套结构的转换，整批预检后逐项执行与读回。检查 results 中 verification.errors 和 unverifiedFields；不是原子事务，失败时此前步骤可能已生效。eh_applySceneOps 只接受原生嵌套结构。textContainerId 自动布局尚不支持，显式给矩形 |
+| `sceneOps` / `eh_applySceneOps` | sceneOps 接入平铺到 transform/image/text 等嵌套结构的转换，整批预检后逐项执行与读回。检查 results 中 verification.errors 和 unverifiedFields；不是原子事务，失败时此前步骤可能已生效。eh_applySceneOps 只接受原生嵌套结构。textContainerId 自动布局尚不支持，显式给矩形。Text 默认按内容自动撑开：显式 width/height 必须同时传 boxDimension:'fixedSize'，否则预检报 TEXT_SIZE_REQUIRES_FIXED_BOX；想让尺寸随内容变化就省略 width/height |
 | `sceneSpec` | objects 由实时 getScene/getAllAssets 投影，包含 GUID、组件 ID、显隐及可计算矩形；不依赖 Assets/scene.json。使用官方 720×1280 设计坐标，复杂旋转/缩放的几何不作可靠承诺 |
 | `setupGameScript` / `userScript` / `compileProject` | 新入口支持 resourceBindings:[{property,type:Texture或Material,guid}]；旧入口保留 action/componentProperties。依赖冲突默认保留用户修改；确需升级，先读回哈希，再显式传 expectedRuntimeHashes。编译通过不等于玩法已验证 |
 | `builtinResource` / `materialAsset` | 有本地映射；资源知识查询只搜索原始 schema，没有官方覆盖层融合。字段缺失时查询实际对象，不猜测字段；复杂资源、材质仍待专项验证 |
 | `eh_previewTouch` / `eh_previewDrag` | 坐标使用 [0,1]，schema 会拒绝范围外输入。触摸原点与实际命中仍需按预览验证 |
-| `eh_saveScreenshot` | 返回 MCP image；指定工程内 path 时桥接解码图像、落盘并返回 saved/path/width/height/sha256，图像缺失或无法解码时报错。未指定 path 时只返回图像 |
+| `eh_saveScreenshot` | 返回 MCP image；指定工程内 path 时桥接校验 PNG/JPEG 头部、落盘并返回 saved/path/width/height/sha256，图像缺失或无法识别时报错。桥接运行在编辑器内置 Node 中，不加载 sharp 等原生模块。未指定 path 时只返回图像 |
 | `eh_recordPreviewVideo` | 默认输出到工程 `.codex/artifacts/recordings/`，需读回输出并核对文件；已打开的旧桥接窗口可能仍采用旧目录 |
 | `imageCrop` / `imageCompress` / `svgConvert` | 本地确定性处理；区域裁剪须指定 outputPath。设计稿尺寸推断、HUD 自动归一化、SVG 动画不支持；显式给尺寸及路径 |
 | `code_search` / `consoleLog` | 前者是本地 TS 符号查询，不是官方私有代码图谱；日志已适配 9.4 startLine/count 参数顺序，但空日志仍不能作为正常运行证据 |

@@ -107,6 +107,8 @@ export function normalizeOps(ops,objects,assets){
     if(Object.keys(image).length)native.image=image;
     if(op.color!==undefined&&!/^#[\da-f]{6}$/i.test(op.color))throw Error('Image color 使用 #RRGGBB');
    }else if(type==='Text'){
+    // 文字默认按内容自动撑开，显式 width/height 只有 fixedSize 才会保留；提前拒绝，避免批量中途读回失败。
+    if(transform.size&&(op.boxDimension??current?.style?.boxDimension)!=='fixedSize')throw Error(`TEXT_SIZE_REQUIRES_FIXED_BOX: ${op.id} 设置 width/height 时需同时指定 boxDimension:'fixedSize'；否则尺寸由内容决定，请省略 width/height`);
     const style=pick(op,['fontSize','color','shadow','stroke','boxDimension','lineBreakType','horizontalAlignment','verticalAlignment','lineSpacing']);
     native.text={...(op.content!==undefined?{content:op.content}:{}),...(Object.keys(style).length?{style}:{})};
    }else if(type==='Audio'){

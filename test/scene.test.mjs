@@ -51,3 +51,11 @@ test('子目录图片按资源 GUID 和 Texture 字段类型绑定',async()=>{
  const result=await sceneOps({ops:[{op:'modify',id:'Label',textureKey:'nested'}]},c);
  assert.equal(result.success,true);assert.equal(result.results[0].object.texture.guid,'new');
 });
+test('文字显式尺寸必须配合 fixedSize，预检拒绝且不写入',async()=>{
+ let writes=0;const c={call:async name=>name==='getScene'?fixture():name==='getAllAssets'?[]:(writes++,{success:true})};
+ await assert.rejects(()=>sceneOps({ops:[{op:'modify',id:'Label',content:'先改'},{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100,width:200,height:50}]},c),/TEXT_SIZE_REQUIRES_FIXED_BOX/);
+ assert.equal(writes,0);
+ const objects=(await sceneSpec(c)).objects;
+ assert.doesNotThrow(()=>normalizeOps([{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100,width:200,height:50,boxDimension:'fixedSize'}],objects,[]));
+ assert.doesNotThrow(()=>normalizeOps([{op:'add',type:'Text',id:'T',groupId:'UI',content:'x',positionMode:'absolute',x:100,y:100}],objects,[]));
+});

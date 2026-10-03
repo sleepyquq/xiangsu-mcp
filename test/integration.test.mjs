@@ -80,3 +80,12 @@ test('跨工程软链接路径不能用于读写',async t=>{
  await fs.mkdir(path.join(temp,'a'));await fs.mkdir(path.join(temp,'b'));await fs.symlink(path.join(temp,'b'),path.join(temp,'a/link'),'junction');
  assert.throws(()=>checkedPath('link/output.png',path.join(temp,'a'),true),/边界/);
 });
+test('截图尺寸只解析 PNG/JPEG 头部，不在编辑器进程加载原生模块',async()=>{
+ const {imageSize}=require('../editor-plugin/runtime.cjs');
+ const png=await sharp({create:{width:37,height:21,channels:4,background:'#fff'}}).png().toBuffer();
+ const jpg=await sharp({create:{width:45,height:19,channels:3,background:'#fff'}}).jpeg({progressive:true}).withMetadata().toBuffer();
+ assert.deepEqual(imageSize(png),{width:37,height:21});
+ assert.deepEqual(imageSize(jpg),{width:45,height:19});
+ assert.throws(()=>imageSize(Buffer.from('hello')),/SCREENSHOT_IMAGE_INVALID/);
+ assert.doesNotMatch(await fs.readFile(new URL('../editor-plugin/runtime.cjs',import.meta.url),'utf8'),/require\(['"]sharp['"]\)/);
+});
