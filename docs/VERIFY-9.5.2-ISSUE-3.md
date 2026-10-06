@@ -1,5 +1,7 @@
 # 像塑 9.5.2：Issue #3 修复验证
 
+项目版本：0.2.2。同步更新包版本、锁文件及 MCP 服务/插件安装器使用的版本；桥接协议版本仍为 2。
+
 2026-10-06，验证分支 `claude/affectionate-pascal-nn5r6w`（远端头 `3f8d23d`），编辑器 `9.5.2.887097048`。本记录覆盖 [Issue #3](https://github.com/sleepyquq/xiangsu-mcp/issues/3) 的截图和文字尺寸问题，不代表全部工具已验收。
 
 Claude 的截图修复移除了编辑器进程内的 sharp 加载，改用 PNG/JPEG 头解析。文字修复增加 dynamic 尺寸预检及 fixedWidth 高度未验证标记。实查还补充两项源码修复：
