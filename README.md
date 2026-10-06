@@ -2,9 +2,9 @@
 
 让 AI Agent 通过 Model Context Protocol（MCP）操作抖音像塑：编辑场景、绑定素材、初始化 TypeScript 脚本、编译、截图和验证交互。
 
-**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Xiangsu 9.4.0 and later can be installed by default; only Windows + Xiangsu 9.4.0 and 9.4.1 have passed core regression workflows. Later versions may behave differently and require user testing. International TikTok Effect House compatibility is not verified.**
+**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Xiangsu 9.4.0 and later can be installed by default; only Windows + Xiangsu 9.4.0 and 9.4.1 have passed core regression workflows. Xiangsu 9.5.2 has passed focused screenshot, text layout, compilation and recording checks; other workflows and later versions require user testing. International TikTok Effect House compatibility is not verified.**
 
-- 项目版本：0.2.1，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
+- 项目版本：0.2.2，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
 - 当前提供 105 个工具入口；入口数量包含兼容入口和明确未接入的云端入口，**不代表 105 项均已实测**。
 - 独立社区项目，非字节跳动、抖音或 TikTok 官方产品。不宣称完整替代官方 Agent / Ask AI。
 - [安装](#安装) · [功能与验证状态](#功能与验证状态) · [AI 使用指引](#ai-使用指引) · [English quick start](#english-quick-start)
@@ -13,7 +13,7 @@
 
 “已实测”指在像塑测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md)。
 
-**0.2.1 已通过像塑 9.4.1 的核心实机回归与 18 项自动测试。** 现有命令参数结构未变；已更新安装校验，并修正新版音量换算的测试与说明。新版新增的两项预览操作尚未接入。详见 [9.4.1 审查记录](docs/AUDIT-9.4.1.md)。
+**0.2.2 修复像塑 9.5.2 的截图及文字布局兼容问题，23 项自动测试通过。** 9.5.2 已实测截图、文字模式与尺寸批次预检、官方编译和短视频录制；详见 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。9.4.0/9.4.1 的历史核心回归范围保持，详见 [9.4.1 审查记录](docs/AUDIT-9.4.1.md)。新版新增的两项预览操作尚未接入。
 
 | 能力 | 当前实现 | 验证情况 |
 |---|---|---|
@@ -36,10 +36,12 @@
 - 国际版 Effect House、macOS、像塑 9.4.0/9.4.1 之外的版本以及国内外工程互通，均未验证。
 - 不支持官方设计稿自动布局补全、完整 HUD 归一化、SVG 动画时间线。
 - 多步操作不是原子事务；部分失败需读回确认，不能盲目重试写入。
+- Text 默认（`boxDimension:'dynamic'`）按内容自动撑开，此时设置 width/height 会在预检直接拒绝（TEXT_SIZE_REQUIRES_FIXED_BOX）。需要固定尺寸请用 `fixedSize`；只固定宽度用 `fixedWidth`，此时只核对宽度，高度随内容。
 - 试玩依赖已挂载且能启动的 Game2D 入口；运行库结构不匹配会拒绝插入临时代码。
 - 试玩期间用户改动运行库时，会保留冲突和备份；不会强行覆盖用户修改。
 - 自动提取 Schema 尚不能完整表达所有 Zod refine / transform，最终仍由编辑器校验。
 - 使用内部编辑器接口。像塑 9.4.0 及之后版本默认允许安装；目前仅 9.4.0、9.4.1 通过核心实测。后续版本可能出现功能差异，需在测试工程中自行验证。
+- 社区反馈：像塑 9.5.2（Windows）已跑通安装、会话、场景读写、文字批量添加和 MP4 录制（[#3](https://github.com/sleepyquq/xiangsu-mcp/issues/3)）。当时带 path 的截图因编辑器进程加载 sharp 失败，现已改为不依赖原生模块；该修复尚待 9.5.2 实机复测。
 
 ## 安装
 
@@ -92,7 +94,7 @@ $env:XIANGSU_EFFECT_WORKSPACE = 'D:/Effects'
 node scripts/install.mjs
 ```
 
-安装器会核对像塑版本及 `agent-server.exe` 哈希：9.4.0/9.4.1 对应实测包标记为已验证，9.4.0 之后的其他版本或不同安装包给出未验证提示并继续安装。它会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.1`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
+安装器会核对像塑版本及 `agent-server.exe` 哈希：9.4.0/9.4.1 对应实测包标记为已验证，9.4.0 之后的其他版本或不同安装包给出未验证提示并继续安装；9.5.2 的专项验证尚未扩展为完整包审计。它会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.2`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
 
 安装完成后，**先保存已有工作，再关闭并重新打开像塑工程窗口**，让插件加载。不要直接重启有未保存编辑的窗口。保持源码仓库路径不变，用户插件会引用该目录。
 
@@ -183,7 +185,7 @@ node scripts/blank-play.mjs 'D:/Effects/DisposableBlankTest'
 
 ## English quick start
 
-1. Install Windows, Xiangsu **9.4.0 or later**, PowerShell 7, Git and Node.js 24. Core workflows have only been tested on 9.4.0 and 9.4.1; test later versions yourself.
+1. Install Windows, Xiangsu **9.4.0 or later**, PowerShell 7, Git and Node.js 24. Core workflows have been tested on 9.4.0 and 9.4.1; focused screenshot, text layout, compilation and recording checks also passed on 9.5.2.
 2. Clone this repository and run `npm ci --ignore-scripts`, then `npm test`.
 3. Set `XIANGSU_EFFECT_WORKSPACE` to your effect projects directory and run `node scripts/install.mjs`. Set `XIANGSU_EDITOR_ROOT` only for a custom editor installation.
 4. Save your work and reopen the editor project to load the user plugin.

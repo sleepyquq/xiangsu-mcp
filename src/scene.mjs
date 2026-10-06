@@ -5,6 +5,8 @@ const component = (node,type) => node.components?.find(c=>value(c.type)===type);
 const pick = (o,keys) => Object.fromEntries(keys.filter(k=>o[k]!==undefined).map(k=>[k,o[k]]));
 const colorHex = c => c ? '#'+['r','g','b'].map(k=>Math.round(c[k]*255).toString(16).padStart(2,'0')).join('') : undefined;
 const lowerFirst = x => typeof x==='string'?x[0].toLowerCase()+x.slice(1):x;
+// 9.5 的 Text2D 用 layoutMode 替代 boxDimension；AutoHeight 表示固定宽度。
+const textBoxMode = text => text.boxDimension !== undefined ? lowerFirst(value(text.boxDimension)) : ({AutoSize:'dynamic',AutoHeight:'fixedWidth',FixedSize:'fixedSize'})[value(text.layoutMode)] ?? lowerFirst(value(text.layoutMode));
 
 export function projectScene(scene,assets=[]){
  if(!Array.isArray(scene?.renderGroups))throw Error('GET_SCENE_FAILED: 编辑器未返回有效场景');
@@ -31,7 +33,7 @@ export function projectScene(scene,assets=[]){
    const textureGuid=value(image?.texture)?.guid,asset=assets.find(a=>value(a.guid)===textureGuid);
    objects.push({id:name,guid,type:typeOf(node),target:isGroup?'group':'object',groupId,visible,effectiveVisible:ancestorsVisible&&visible,...(geometrySafe?bounds:{}),
     ...(image?{texture:{guid:textureGuid,key:value(asset?.name)},color:colorHex(value(image.color)),alpha:value(image.color)?.a,drawMode:value(image.drawMode)}:{}),
-    ...(text?{text:value(text.input),style:{fontSize:value(text.fontSize),color:colorHex(value(text.color)),boxDimension:lowerFirst(value(text.boxDimension)),horizontalAlignment:value(text.horizontalAlignment)?.toLowerCase(),verticalAlignment:value(text.verticalAlignment)?.toLowerCase()}}:{}),
+    ...(text?{text:value(text.input),style:{fontSize:value(text.fontSize),color:colorHex(value(text.color)),boxDimension:textBoxMode(text),horizontalAlignment:value(text.horizontalAlignment)?.toLowerCase(),verticalAlignment:value(text.verticalAlignment)?.toLowerCase()}}:{}),
     physics2d:{components:(node.components??[]).filter(c=>['RigidBody2D','CircleCollider2D','BoxCollider2D','PolygonCollider2D','EdgeCollider2D'].includes(value(c.type)))},
     componentIds:Object.fromEntries((node.components??[]).map(c=>[value(c.type),value(c.guid)])),
     geometrySource:bounds&&geometrySafe?'live-screen-transform':undefined});
@@ -70,6 +72,7 @@ export function normalizeOps(ops,objects,assets){
   if(!type)throw Error('新增对象必须指定 type');
   const native={op:op.op,id:op.id,type,...pick(op,['groupId','visible','extensions','general'])};
   if(current?.guid)native.guid=current.guid;
+  let textBox;
   const expected={...current,id:op.id,type,...pick(op,['groupId','visible'])};
   if(op.op!=='remove'){
    const transform={};
@@ -107,8 +110,13 @@ export function normalizeOps(ops,objects,assets){
     if(Object.keys(image).length)native.image=image;
     if(op.color!==undefined&&!/^#[\da-f]{6}$/i.test(op.color))throw Error('Image color 使用 #RRGGBB');
    }else if(type==='Text'){
+    // dynamic（默认）宽高都由内容决定，fixedWidth 只保留宽度；提前拒绝，避免批量中途读回失败。
+    textBox=op.boxDimension??current?.style?.boxDimension;
+    if(transform.size&&!['fixedWidth','fixedSize'].includes(textBox))throw Error(`TEXT_SIZE_REQUIRES_FIXED_BOX: ${op.id} 设置 width/height 时需指定 boxDimension 为 'fixedSize'（宽高固定）或 'fixedWidth'（仅宽度固定，高度随内容）；否则尺寸由内容决定，请省略 width/height`);
     const style=pick(op,['fontSize','color','shadow','stroke','boxDimension','lineBreakType','horizontalAlignment','verticalAlignment','lineSpacing']);
     native.text={...(op.content!==undefined?{content:op.content}:{}),...(Object.keys(style).length?{style}:{})};
+    // 将本步样式带入整批预检，后续尺寸操作必须使用前一步设置的文字框模式。
+    expected.style={...current?.style,...style};
    }else if(type==='Audio'){
     native.audio=pick(op,['clip','isBgm']);
     if(op.clip&&!/\.[a-z0-9]+$/i.test(op.clip))native.audio.clip=op.clip+'.mp3';
@@ -117,7 +125,7 @@ export function normalizeOps(ops,objects,assets){
   const index=predicted.indexOf(current);
   if(!current&&['x','y','width','height'].every(k=>Number.isFinite(expected[k])))expected.geometrySource='planned-screen-transform';
   if(op.op==='remove')predicted.splice(index,1);else if(current)predicted[index]=expected;else predicted.push(expected);
-  plans.push({native,input:op,expected});
+  plans.push({native,input:op,expected,textBox});
  }
  return plans;
 }
@@ -136,7 +144,7 @@ export async function sceneOps(p,c){
   let wrote=false;
   try{
    const state=await sceneSpec(c),[plan]=normalizeOps([input],state.objects,assets);
-   const {native,expected}=plan;
+   const {native,expected,textBox}=plan;
    wrote=true;
    // 原生图片 DSL 按文件名查找时会漏掉子目录素材；已解析的资源直接按 GUID 绑定。
    if(native.type==='Image'&&input.op==='add'){
@@ -160,12 +168,17 @@ export async function sceneOps(p,c){
    // 9.4 applySceneOps 会静默忽略部分文字枚举；用实测组件枚举写入并继续读回。
    if(native.type==='Text'&&input.op!=='remove'){
     const properties=[];
+    const object=resolve(after.objects,native);
+    const textComponent=input.boxDimension!==undefined?await c.call('getComponent',{guid:object.componentIds.Text2D}):undefined;
     for(const key of ['boxDimension','horizontalAlignment','verticalAlignment'])if(input[key]!==undefined){
+     if(key==='boxDimension'&&textComponent?.layoutMode!==undefined){
+      properties.push({property:'layoutMode',value:{type:'Enum',data:({dynamic:'AutoSize',fixedWidth:'AutoHeight',fixedSize:'FixedSize'})[input[key]]}});
+      continue;
+     }
      const data=key==='boxDimension'?input[key][0].toUpperCase()+input[key].slice(1):input[key].toUpperCase();
      properties.push({property:key,value:{type:'Enum',data}});
     }
     if(properties.length){
-     const object=resolve(after.objects,native);
      const changed=await c.call('setComponent',{guid:object.componentIds.Text2D,properties});
      if(changed?.success===false)throw Error('TEXT_STYLE_FAILED: '+JSON.stringify(changed));
      after=await sceneSpec(c);
@@ -185,7 +198,7 @@ export async function sceneOps(p,c){
     check('exists',true,!!actual);
     if(actual){
      for(const key of ['x','y'])if(native.transform?.position)check(key,expected[key],actual[key],0.5);
-     for(const key of ['width','height'])if(native.transform?.size)check(key,expected[key],actual[key],0.5);
+     for(const key of ['width','height'])if(native.transform?.size&&!(key==='height'&&textBox==='fixedWidth'))check(key,expected[key],actual[key],0.5);
      if(input.textureKey)check('texture',expected.texture.guid,actual.texture?.guid);
      if(input.content!==undefined)check('content',input.content,actual.text);
      if(input.visible!==undefined)check('visible',input.visible,actual.visible);
@@ -195,7 +208,7 @@ export async function sceneOps(p,c){
      for(const key of ['fontSize','boxDimension','horizontalAlignment','verticalAlignment'])if(input[key]!==undefined)check(key,input[key],actual.style?.[key]);
     }
    }
-   const unverifiedFields=Object.keys(input).filter(k=>['extensions','general','clip','isBgm','componentGuid','effectType','materialGuid','shadow','stroke','lineBreakType','lineSpacing','groupId'].includes(k)&&!(k==='groupId'&&input.target==='group'));
+   const unverifiedFields=Object.keys(input).filter(k=>(k==='height'&&textBox==='fixedWidth')||['extensions','general','clip','isBgm','componentGuid','effectType','materialGuid','shadow','stroke','lineBreakType','lineSpacing','groupId'].includes(k)&&!(k==='groupId'&&input.target==='group'));
    results.push({index,success:errors.length===0,result,verification:{success:errors.length===0,verifiedFields,unverifiedFields,errors},object:actual});
    if(errors.length)return {success:false,applied:results.length,results,failedIndex:index,retrySafe:false};
   }catch(error){

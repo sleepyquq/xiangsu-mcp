@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-export const version='0.2.1';
+export const version='0.2.2';
 export const protocolVersion=2;
 export const sha256=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 // 已实测官方包；9.4.1 复用结构未变的 9.4.0 命令基线。
