@@ -5,6 +5,8 @@ const component = (node,type) => node.components?.find(c=>value(c.type)===type);
 const pick = (o,keys) => Object.fromEntries(keys.filter(k=>o[k]!==undefined).map(k=>[k,o[k]]));
 const colorHex = c => c ? '#'+['r','g','b'].map(k=>Math.round(c[k]*255).toString(16).padStart(2,'0')).join('') : undefined;
 const lowerFirst = x => typeof x==='string'?x[0].toLowerCase()+x.slice(1):x;
+// 9.5 的 Text2D 用 layoutMode 替代 boxDimension；AutoHeight 表示固定宽度。
+const textBoxMode = text => text.boxDimension !== undefined ? lowerFirst(value(text.boxDimension)) : ({AutoSize:'dynamic',AutoHeight:'fixedWidth',FixedSize:'fixedSize'})[value(text.layoutMode)] ?? lowerFirst(value(text.layoutMode));
 
 export function projectScene(scene,assets=[]){
  if(!Array.isArray(scene?.renderGroups))throw Error('GET_SCENE_FAILED: 编辑器未返回有效场景');
@@ -31,7 +33,7 @@ export function projectScene(scene,assets=[]){
    const textureGuid=value(image?.texture)?.guid,asset=assets.find(a=>value(a.guid)===textureGuid);
    objects.push({id:name,guid,type:typeOf(node),target:isGroup?'group':'object',groupId,visible,effectiveVisible:ancestorsVisible&&visible,...(geometrySafe?bounds:{}),
     ...(image?{texture:{guid:textureGuid,key:value(asset?.name)},color:colorHex(value(image.color)),alpha:value(image.color)?.a,drawMode:value(image.drawMode)}:{}),
-    ...(text?{text:value(text.input),style:{fontSize:value(text.fontSize),color:colorHex(value(text.color)),boxDimension:lowerFirst(value(text.boxDimension)),horizontalAlignment:value(text.horizontalAlignment)?.toLowerCase(),verticalAlignment:value(text.verticalAlignment)?.toLowerCase()}}:{}),
+    ...(text?{text:value(text.input),style:{fontSize:value(text.fontSize),color:colorHex(value(text.color)),boxDimension:textBoxMode(text),horizontalAlignment:value(text.horizontalAlignment)?.toLowerCase(),verticalAlignment:value(text.verticalAlignment)?.toLowerCase()}}:{}),
     physics2d:{components:(node.components??[]).filter(c=>['RigidBody2D','CircleCollider2D','BoxCollider2D','PolygonCollider2D','EdgeCollider2D'].includes(value(c.type)))},
     componentIds:Object.fromEntries((node.components??[]).map(c=>[value(c.type),value(c.guid)])),
     geometrySource:bounds&&geometrySafe?'live-screen-transform':undefined});
@@ -113,6 +115,8 @@ export function normalizeOps(ops,objects,assets){
     if(transform.size&&!['fixedWidth','fixedSize'].includes(textBox))throw Error(`TEXT_SIZE_REQUIRES_FIXED_BOX: ${op.id} 设置 width/height 时需指定 boxDimension 为 'fixedSize'（宽高固定）或 'fixedWidth'（仅宽度固定，高度随内容）；否则尺寸由内容决定，请省略 width/height`);
     const style=pick(op,['fontSize','color','shadow','stroke','boxDimension','lineBreakType','horizontalAlignment','verticalAlignment','lineSpacing']);
     native.text={...(op.content!==undefined?{content:op.content}:{}),...(Object.keys(style).length?{style}:{})};
+    // 将本步样式带入整批预检，后续尺寸操作必须使用前一步设置的文字框模式。
+    expected.style={...current?.style,...style};
    }else if(type==='Audio'){
     native.audio=pick(op,['clip','isBgm']);
     if(op.clip&&!/\.[a-z0-9]+$/i.test(op.clip))native.audio.clip=op.clip+'.mp3';
@@ -164,12 +168,17 @@ export async function sceneOps(p,c){
    // 9.4 applySceneOps 会静默忽略部分文字枚举；用实测组件枚举写入并继续读回。
    if(native.type==='Text'&&input.op!=='remove'){
     const properties=[];
+    const object=resolve(after.objects,native);
+    const textComponent=input.boxDimension!==undefined?await c.call('getComponent',{guid:object.componentIds.Text2D}):undefined;
     for(const key of ['boxDimension','horizontalAlignment','verticalAlignment'])if(input[key]!==undefined){
+     if(key==='boxDimension'&&textComponent?.layoutMode!==undefined){
+      properties.push({property:'layoutMode',value:{type:'Enum',data:({dynamic:'AutoSize',fixedWidth:'AutoHeight',fixedSize:'FixedSize'})[input[key]]}});
+      continue;
+     }
      const data=key==='boxDimension'?input[key][0].toUpperCase()+input[key].slice(1):input[key].toUpperCase();
      properties.push({property:key,value:{type:'Enum',data}});
     }
     if(properties.length){
-     const object=resolve(after.objects,native);
      const changed=await c.call('setComponent',{guid:object.componentIds.Text2D,properties});
      if(changed?.success===false)throw Error('TEXT_STYLE_FAILED: '+JSON.stringify(changed));
      after=await sceneSpec(c);
