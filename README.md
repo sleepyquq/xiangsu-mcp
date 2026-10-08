@@ -2,7 +2,7 @@
 
 让 AI Agent 通过 Model Context Protocol（MCP）操作抖音像塑：编辑场景、绑定素材、初始化 TypeScript 脚本、编译、截图和验证交互。
 
-**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Xiangsu 9.4.0 and later can be installed by default; only Windows + Xiangsu 9.4.0 and 9.4.1 have passed core regression workflows. Xiangsu 9.5.2 has passed focused screenshot, text layout, compilation and recording checks; other workflows and later versions require user testing. International TikTok Effect House compatibility is not verified.**
+**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Windows + Xiangsu 9.4.0, 9.4.1 and 9.5.2 have been tested. Core regression workflows passed on 9.4.0/9.4.1; session binding, text layout and batch preflight, screenshots, compilation and recording passed on 9.5.2. Xiangsu 9.4.0 and later can be installed by default; untested workflows and versions require further verification. International TikTok Effect House compatibility is not verified.**
 
 - 项目版本：0.2.2，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
 - 当前提供 105 个工具入口；入口数量包含兼容入口和明确未接入的云端入口，**不代表 105 项均已实测**。
@@ -11,7 +11,7 @@
 
 ## 功能与验证状态
 
-“已实测”指在像塑测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md)。
+“已实测”指在像塑测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md) 与 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。
 
 **0.2.2 修复像塑 9.5.2 的截图及文字布局兼容问题，23 项自动测试通过。** 9.5.2 已实测截图、文字模式与尺寸批次预检、官方编译和短视频录制；详见 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。9.4.0/9.4.1 的历史核心回归范围保持，详见 [9.4.1 审查记录](docs/AUDIT-9.4.1.md)。新版新增的两项预览操作尚未接入。
 
@@ -33,15 +33,15 @@
 
 ### 尚未支持或不能保证的内容
 
-- 国际版 Effect House、macOS、像塑 9.4.0/9.4.1 之外的版本以及国内外工程互通，均未验证。
+- 国际版 Effect House、macOS、像塑 9.4.0/9.4.1/9.5.2 之外的版本以及国内外工程互通，均未验证。各已测版本的功能覆盖范围见上方验证记录。
 - 不支持官方设计稿自动布局补全、完整 HUD 归一化、SVG 动画时间线。
 - 多步操作不是原子事务；部分失败需读回确认，不能盲目重试写入。
 - Text 默认（`boxDimension:'dynamic'`）按内容自动撑开，此时设置 width/height 会在预检直接拒绝（TEXT_SIZE_REQUIRES_FIXED_BOX）。需要固定尺寸请用 `fixedSize`；只固定宽度用 `fixedWidth`，此时只核对宽度，高度随内容。
 - 试玩依赖已挂载且能启动的 Game2D 入口；运行库结构不匹配会拒绝插入临时代码。
 - 试玩期间用户改动运行库时，会保留冲突和备份；不会强行覆盖用户修改。
 - 自动提取 Schema 尚不能完整表达所有 Zod refine / transform，最终仍由编辑器校验。
-- 使用内部编辑器接口。像塑 9.4.0 及之后版本默认允许安装；目前仅 9.4.0、9.4.1 通过核心实测。后续版本可能出现功能差异，需在测试工程中自行验证。
-- 社区反馈：像塑 9.5.2（Windows）已跑通安装、会话、场景读写、文字批量添加和 MP4 录制（[#3](https://github.com/sleepyquq/xiangsu-mcp/issues/3)）。当时带 path 的截图因编辑器进程加载 sharp 失败，现已改为不依赖原生模块；该修复尚待 9.5.2 实机复测。
+- 使用内部编辑器接口。像塑 9.4.0 及之后版本默认允许安装；9.4.0、9.4.1 已完成核心回归，9.5.2 已完成会话绑定、文字布局与批次预检、截图、编译和录制的实机验证。其他功能及后续版本需按实际需求继续验证。
+- 社区反馈的像塑 9.5.2（Windows）截图与文字尺寸问题（[#3](https://github.com/sleepyquq/xiangsu-mcp/issues/3)）已修复并实机复测通过：带/不带 path 截图、三种文字框模式、连续尺寸修改和整批零写入预检均通过。修复已随 0.2.2 发布，详见 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。
 
 ## 安装
 
@@ -65,7 +65,7 @@
 
 ### 1. 准备环境
 
-- Windows，安装 **像塑桌面版 9.4.0 或之后版本**，先确认能够正常打开工程；目前只在 **9.4.0、9.4.1** 完成核心实测。
+- Windows，安装 **像塑桌面版 9.4.0 或之后版本**，先确认能够正常打开工程；已实测版本为 **9.4.0、9.4.1、9.5.2**，具体功能范围见验证记录。
 - Node.js：本项目验证环境为 **24.14.1**；建议使用 Node.js 24。
 - PowerShell 7（`pwsh.exe`）、Git，以及支持本地 stdio MCP 的客户端。
 - 一个独立特效工程目录，例如 `D:/Effects`。源码仓库目录与特效工程目录是两回事。
@@ -94,7 +94,7 @@ $env:XIANGSU_EFFECT_WORKSPACE = 'D:/Effects'
 node scripts/install.mjs
 ```
 
-安装器会核对像塑版本及 `agent-server.exe` 哈希：9.4.0/9.4.1 对应实测包标记为已验证，9.4.0 之后的其他版本或不同安装包给出未验证提示并继续安装；9.5.2 的专项验证尚未扩展为完整包审计。它会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.2`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
+安装器会核对像塑版本及 `agent-server.exe` 哈希：目前哈希白名单登记了 9.4.0/9.4.1 的对应安装包，其他版本或不同安装包会提示并继续安装。**9.5.2 已完成上述实机验证，但其包哈希尚未登记到安装器白名单，因此仍可能显示 `XIANGSU_COMPATIBILITY_UNVERIFIED`；该提示不表示 9.5.2 从未验证。** 安装器会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.2`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
 
 安装完成后，**先保存已有工作，再关闭并重新打开像塑工程窗口**，让插件加载。不要直接重启有未保存编辑的窗口。保持源码仓库路径不变，用户插件会引用该目录。
 
@@ -132,7 +132,7 @@ node scripts/install.mjs
 
 | 情况 | 处理方式 |
 |---|---|
-| XIANGSU_COMPATIBILITY_UNVERIFIED | 版本或官方包未实测；允许安装，请在测试工程中自行验证所需功能 |
+| XIANGSU_COMPATIBILITY_UNVERIFIED | 版本或包哈希未登记到安装器白名单；允许安装。9.5.2 已通过专项实机验证，其他功能按需验证 |
 | EDITOR_VERSION_TOO_OLD | 当前编辑器早于 9.4.0，不在默认兼容范围 |
 | CATALOG_BASELINE_NOT_AUDITED | 仓库命令清单基线不匹配，需核对源码和清单后再安装 |
 | 查不到会话 | 确认用户插件已加载，并已重新打开实际工程窗口 |
