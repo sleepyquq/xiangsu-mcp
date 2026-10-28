@@ -52,16 +52,16 @@
 
 ## 安装本项目
 
-如果官方 MCP 已满足需求，无需安装本项目。以下步骤适用于 0.3.0。
+以下步骤适用于 0.3.0。
 
 ### 让 Agent 安装
 
 把工程总目录改为自己的路径，再复制下面的提示词：
 
 ```text
-请帮我安装 Xiangsu MCP：https://github.com/sleepyquq/xiangsu-mcp
+请安装并配置本仓库的 Xiangsu MCP：https://github.com/sleepyquq/xiangsu-mcp
 
-先读 README.md 和 docs/SKILL-ADAPTER.md，核对取得的源码版本与像塑版本。若官方 MCP 已满足需求，优先配置官方；我需要本项目时，再复用或克隆仓库，检查 Windows、PowerShell 7、Git、Node.js 24，安装依赖并运行 npm test。
+先读 README.md 和 docs/SKILL-ADAPTER.md，核对取得的源码版本与像塑版本。复用本机已有仓库，或克隆到合适的工具目录；检查 Windows、PowerShell 7、Git、Node.js 24，安装依赖并运行 npm test。
 
 设置 XIANGSU_EFFECT_WORKSPACE 后运行 node scripts/install.mjs；像塑不在默认位置时设置 XIANGSU_EDITOR_ROOT。遵守所选 MCP 版本的最低像塑版本限制，更高但未实测版本可继续，低于下限时不要绕过校验。
 

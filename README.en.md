@@ -52,16 +52,16 @@ Important limitations:
 
 ## Install this project
 
-If the official MCP meets your needs, you do not need this project. These instructions apply to 0.3.0.
+These instructions apply to 0.3.0.
 
 ### Ask an agent to install it
 
 Replace the projects directory and give this prompt to an agent:
 
 ```text
-Please install Xiangsu MCP: https://github.com/sleepyquq/xiangsu-mcp
+Please install and configure Xiangsu MCP from this repository: https://github.com/sleepyquq/xiangsu-mcp
 
-Read README.en.md and docs/SKILL-ADAPTER.md first, and check the source version against my Xiangsu version. Prefer the official MCP if it meets my needs. If I need this project, reuse or clone its repository, check Windows, PowerShell 7, Git, and Node.js 24, install dependencies, and run npm test.
+Read README.en.md and docs/SKILL-ADAPTER.md first, and check the source version against my Xiangsu version. Reuse an existing local checkout or clone the repository into a suitable tools directory. Check Windows, PowerShell 7, Git, and Node.js 24, install dependencies, and run npm test.
 
 Set XIANGSU_EFFECT_WORKSPACE and run node scripts/install.mjs. Set XIANGSU_EDITOR_ROOT for a custom editor installation. Respect the minimum editor version of the chosen MCP release: newer untested versions may proceed, but do not bypass the check for older editors.
 
