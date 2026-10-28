@@ -1,12 +1,12 @@
 import {Game2D,Scene,Text} from './Game2D';
-import {createPitchDetector,createVolumeDetector,AgentPitchDetector,AgentVolumeDetector} from './AgentAudioDetector';
+import {createPitchDetector,createVolumeDetector} from './AgentAudioDetector';
 import {registerKeywordDetectorInit,createKeywordDetector} from './AgentAudioKeyword';
 registerKeywordDetectorInit({keywordType:'chineseWord'});
 
 class ProbeScene extends Scene {
  frames=0;pitch=-1;volume=-1;hits=0;misses=0;lastKeyword='';touches=0;
- private pitchDetector:AgentPitchDetector|null=null;
- private volumeDetector:AgentVolumeDetector|null=null;
+ private pitchDetector:ReturnType<typeof createPitchDetector>=null;
+ private volumeDetector:ReturnType<typeof createVolumeDetector>=null;
  private label:Text|null=null;
  create(){
   this.pitchDetector=createPitchDetector();this.volumeDetector=createVolumeDetector();

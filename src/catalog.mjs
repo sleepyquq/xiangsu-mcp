@@ -4,6 +4,7 @@ export const str={type:'string'}, num={type:'number'}, bool={type:'boolean'}, an
 export const obj=(properties={},required=Object.keys(properties))=>({type:'object',properties,required,additionalProperties:false});
 export const arr=items=>({type:'array',items});
 const top=name=>extracted.topTools.find(t=>t.name===name)?.inputSchema;
+extracted.topTools.push({name:'preparePlayMaterial',description:'准备动作视频到当前工程；接受工程内 sourcePath 或 HTTPS MP4/MOV url，可选 SHA256 校验，最大 128 MiB',inputSchema:{oneOf:[obj({sourcePath:str,sha256:{type:'string',pattern:'^[a-fA-F0-9]{64}$'}},['sourcePath']),obj({url:str,sha256:{type:'string',pattern:'^[a-fA-F0-9]{64}$'}},['url'])]}});
 const bindings=arr(obj({property:{...str,minLength:1},type:{enum:['Texture','Material']},guid:{...str,minLength:1}}));
 // 保留 9.3 客户端入口；新版正式入口使用 setupGameScript。
 extracted.topTools.push({name:'userScript',description:'兼容旧版脚本初始化/依赖同步/资源绑定；新任务优先 setupGameScript',inputSchema:obj({action:{enum:['init','ensureDeps','bindProperties']},scriptName:str,targetId:str,abilities:arr(str),componentProperties:bindings},[])});
@@ -36,7 +37,13 @@ add('deleteProjectSnapshotRefs',obj({conversationId:str,gitRefs:arr(str),gitRepo
 const priorVerified=new Set(['echo','getScene','getRenderGroup','setRenderGroup','getAllAssets','getConsoleLogs','getSceneObject','setSceneObject','getComponent','setComponent','saveScreenshot','runOtscCheck','pausePreview','resumePreview']);
 const readOnly=new Set(['echo','getScene','getConsoleLogs','getGanCatalog','getFfmpegPath','getRenderGroup','getSupportedRenderGroupType','getSceneObject','getComponent','getSupportedComponentTypes','getAllAssets','getAsset','getBuiltinAssetFiles','readMaterialAsset','getMaterialCompileStatus']);
 add('getHumanActions',obj(),'9.4：枚举可用人脸、手势和全身动作');
-add('switchHumanAction',obj({actionId:{...str,minLength:1}}),'9.4：切换动作，使用枚举返回的精确 actionId');
+export const humanInputType={type:'string',enum:['preview_face','preview_hand','preview_fullbody','preview_twoperson']};
+export const humanActionParams={oneOf:[obj({actionId:{...str,minLength:1},sessionId:str},['actionId']),obj({materialRef:{...str,minLength:1},inputType:humanInputType,sessionId:str},['materialRef','inputType'])]};
+add('switchHumanAction',humanActionParams,'切换动作：旧 actionId 保留；9.6 可传工程内 materialRef/inputType',['actionId']);
+for(const name of ['beginHumanActionSession','restoreHumanActionSession'])add(name,obj({sessionId:{...str,minLength:1}},[]),'9.6：开始/恢复预览输入会话；省略 sessionId 时绑定当前桥接会话',['sessionId']);
+// 不替换官方旧基线；只扩展本地已实现的兼容分支。
+const playStepSchema=top('playStep');
+playStepSchema.properties.actions.items.anyOf.push(obj({commandType:{const:'switch_human_action'},params:obj({materialRef:{...str,minLength:1},inputType:humanInputType}),waitAfterMs:{type:'integer',minimum:1,maximum:30000}}));
 add('setPlayAudioInput',obj({id:str,input:{...obj({pitchHz:{type:'number',minimum:45,maximum:650},volume:{type:'number',minimum:0,maximum:1},keywordEvent:{anyOf:[obj({type:{const:'hit'},keywords:{type:'array',items:{...str,minLength:1},minItems:1}}),obj({type:{const:'miss'}})]}},[]),minProperties:1},durationMs:{type:'number',minimum:1,maximum:30000}}),'9.4：注入模拟音频；必须在 finally 清除');
 add('clearPlayAudioInput',obj(),'9.4：清除模拟音频');
 add('beginPreviewRecording',obj({filePath:str,projectPath:str,playId:{type:'string',pattern:'^[a-f0-9-]{36}$'}},['filePath']),'9.4：开始预览视频录制',['filePath','projectPath']);

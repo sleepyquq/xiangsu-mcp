@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {checkedPath,writeAtomic} from './files.mjs';
+import {createRequire} from 'node:module';
+const {usesMaterialActions}=createRequire(import.meta.url)('../editor-plugin/runtime.cjs');
 import {previewNames} from './catalog.mjs';
 import {prepareInstrumentation,restoreInstrumentation} from './play-instrumentation.mjs';
 
@@ -85,6 +87,11 @@ export async function runPlay(name,p,c){
  let state;try{state=await readJSON(statePath);}catch(e){if(e.code!=='ENOENT')throw e;}
  if(state&&(state.projectPath!==c.projectPath||state.sessionId!==c.sessionId))throw Error('PLAY_PROJECT_CHANGED');
  const save=()=>writeAtomic(statePath,JSON.stringify(state,null,2));
+ const restoreActions=async()=>{
+  if(!state.humanActionSessionRequested)return;
+  await cleanup('restoreHumanActionSession',{sessionId:state.id});
+  state.humanActionSessionRequested=false;await save();
+ };
  if(name==='playLifecycle'&&p.action==='start'){
   if(state?.active)throw Error('PLAY_ALREADY_ACTIVE: 先 finish 当前试玩');
   const id=crypto.randomUUID(),videoPath=checkedPath(`.codex/artifacts/playthrough/${id}.mp4`,c.projectPath,true);
@@ -130,6 +137,11 @@ export async function runPlay(name,p,c){
    }
    const args=command==='setPlayAudioInput'?{id:'validate',input:action.params,durationMs:action.waitAfterMs}:action.params??(command==='wait'?{ms:0}:{});
    c.validate(command,args);
+   if(command==='switchHumanAction'&&action.params?.materialRef){
+    if(!usesMaterialActions(c.editorVersion))throw Error('PLAY_MATERIAL_REQUIRES_9_6');
+    const file=checkedPath(action.params.materialRef,c.projectPath);
+    if(!/\.(mp4|mov)$/i.test(file)||(await fs.stat(file)).isDirectory())throw Error('PLAY_MATERIAL_INVALID');
+   }
    if(command==='setPlayAudioInput'&&!Object.keys(action.params??{}).length)throw Error('PLAY_AUDIO_INPUT_EMPTY');
   }
   state.previousPauseSeq=state.pauseSeq;
@@ -138,7 +150,12 @@ export async function runPlay(name,p,c){
    for(const action of p.actions){
     // 原生命令在下一次 resume 时应用动作素材；顺序颠倒会让截图一直落后一段。
     if(action.commandType==='switch_human_action'){
-     await invoke('switchHumanAction',action.params);await invoke('resumePreview');await invoke('wait',{ms:action.waitAfterMs});completed++;continue;
+     let params=action.params;
+     if(usesMaterialActions(c.editorVersion)){
+      if(!state.humanActionSessionRequested){state.humanActionSessionRequested=true;await save();await invoke('beginHumanActionSession',{sessionId:state.id});}
+      params={...params,sessionId:state.id};
+     }
+     await invoke('switchHumanAction',params);await invoke('resumePreview');await invoke('wait',{ms:action.waitAfterMs});completed++;continue;
     }
     await invoke('resumePreview');
     if(action.commandType==='simulate_audio_input'){
@@ -163,7 +180,7 @@ export async function runPlay(name,p,c){
     }
     completed++;
    }
-  }catch(e){error=String(e);}
+  }catch(e){error=String(e);try{await restoreActions();}catch(restoreError){error+='；动作恢复失败：'+String(restoreError);}}
   finally{try{await cleanup('pausePreview');}catch(e){pauseError=String(e);}}
   try{state.pauseSeq=(await runtimeFrames(state,c)).frames.at(-1)?.seq;}catch{}
   state.step++;await save();return {success:!error&&!pauseError,completed,step:state.step,paused:!pauseError,error,pauseError,retrySafe:false};
@@ -185,6 +202,7 @@ export async function runPlay(name,p,c){
    if(state.recordingBegun!==false){const file=checkedPath(result?.path??state.videoPath,c.projectPath);if((await fs.stat(file)).size===0)throw Error('PLAY_VIDEO_EMPTY');result={...result,path:file};}
   }catch(e){error=String(e);}
   for(const command of ['clearPlayAudioInput','stopPreviewRecord',...(error?['abortPreviewRecording']:[]),'resumePreview'])try{await cleanup(command);}catch(e){cleanupErrors.push(String(e));}
+  try{await restoreActions();}catch(e){cleanupErrors.push(String(e));}
   try{await restoreInstrumentation(state,c);await cleanup('runOtscCheck',{options:{timeoutMs:60000,maxOutputChars:12000}});await cleanup('reloadSticker');}catch(e){cleanupErrors.push(String(e));}
   state.active=cleanupErrors.length>0;state.cleanupErrors=cleanupErrors;await save();return {success:!error&&!cleanupErrors.length,recording:result,error,cleanupErrors,playId:state.id};
  }

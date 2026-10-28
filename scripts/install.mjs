@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {commands,extracted} from '../src/catalog.mjs';
-import {detectEditor,version,sha256,assessEditorCompatibility} from '../src/version.mjs';
+import {detectEditor,version,assessEditorCompatibility} from '../src/version.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 let previous={};
 try{previous=JSON.parse(await fs.readFile(path.join(root,'config.local.json'),'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
@@ -11,11 +11,17 @@ const workspace=process.env.XIANGSU_EFFECT_WORKSPACE??previous.effectWorkspace??
 if(!workspace)throw Error('首次安装请设置 XIANGSU_EFFECT_WORKSPACE 为特效工程总目录');
 const local=process.env.LOCALAPPDATA;
 const editor=await detectEditor(process.env.XIANGSU_EDITOR_ROOT);
-let binaryHash=null;
-try{binaryHash=sha256(await fs.readFile(path.join(editor.installRoot,'Resources/agent-server.exe')));}catch(e){if(e.code!=='ENOENT')throw e;}
-const compatibility=assessEditorCompatibility(editor.version,binaryHash,extracted.sha256);
+const compatibility=assessEditorCompatibility(editor.version,null,extracted.sha256);
 if(compatibility.warning)console.warn('XIANGSU_COMPATIBILITY_UNVERIFIED: '+compatibility.warning);
 const config={...previous,effectWorkspace:workspace,editorVersion:editor.version,editorFileVersion:editor.fileVersion,stateRoot:previous.stateRoot??path.join(local,'CodexXiangsuMCP/sessions'),allowedRoots:previous.allowedRoots??[workspace],catalogPath:path.join(root,'commands.runtime.json'),skillsRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentSkills'),resourcesRoot:path.join(editor.installRoot,'Resources/BuiltinResource/AgentResources')};
+config.officialMcpUrl=previous.officialMcpUrl??'http://127.0.0.1:17320/mcp';
+config.officialSkillsRoot=path.join(editor.installRoot,'Resources/BuiltinResource/McpTool/resources/skills');
+config.officialWorkspaceRoot=path.join(editor.installRoot,'Resources/BuiltinResource/McpTool/resources/workspace');
+config.previewCatalogs=[
+ {manifest:path.join(local,'DouyinAR/Shared/Resources/PreviewResource/PreviewResources.json'),baseRoot:path.join(local,'DouyinAR/Shared/Resources')},
+ {manifest:path.join(editor.installRoot,'Resources/BuiltinResource/preview/PreviewResources.json'),baseRoot:path.join(editor.installRoot,'Resources')},
+];
+config.ffprobePath=path.join(editor.installRoot,'Resources/BuiltinResource/ffmpeg/x86_64/ffprobe.exe');
 const pluginParent=path.join(local,`DouyinAR/Plugins/v${editor.version}/Local`);
 await fs.mkdir(pluginParent,{recursive:true});
 const configPath=path.join(pluginParent,'plugins.config.json');
@@ -30,7 +36,7 @@ try{await fs.copyFile(path.join(dest,'index.js'),path.join(backupDir,'index.js')
 const entry=`'use strict';\nconst {Runtime}=require(${JSON.stringify(path.join(root,'editor-plugin/runtime.cjs'))});\nconst config=require(${JSON.stringify(path.join(root,'config.local.json'))});\nmodule.exports=class { initPlugin(){if(!process.argv.includes('--projectType=project'))return;const o=globalThis.orion;this.runtime=new Runtime(config,{getProject:()=>o['@orion/orion-sdk/EditorFramework'].Project.getCurrent(),execute:r=>o['@orion/Business/Agent/EHCommand'].executeCommand(r)});this.runtime.start();} deinitPlugin(){this.runtime?.stop();} };\n`;
 await fs.writeFile(path.join(dest,'index.js'),entry);
 await fs.writeFile(path.join(dest,'plugin.manifest.json'),JSON.stringify({name,version,description:'本地 MCP 编辑器桥接',requirements:{orionSDK:'',apis:{}},entry:'index.js',builderVersion:1},null,2));
-// 用正式桥接替换旧调查插件的启动条目，旧文件和配置备份仍保留。
-old.plugins=old.plugins.filter(p=>!['CodexCockpitProbe',name].includes(p.name));old.plugins.push({name,version,loadOnStartup:true});
+// 只替换自身登记，其他插件不随本工具升级而移除。
+old.plugins=old.plugins.filter(p=>p.name!==name);old.plugins.push({name,version,loadOnStartup:true});
 await fs.writeFile(configPath,JSON.stringify(old,null,2));
 console.log(JSON.stringify({plugin:dest,backupDir,requiresEditorReload:true,config:path.join(root,'config.local.json'),editorCompatibility:compatibility}));

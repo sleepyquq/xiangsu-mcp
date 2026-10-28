@@ -3,15 +3,17 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-const runtimeNames=['Game2D.ts','AgentAudioDetector.ts','AgentAudioKeyword.ts'];
+const runtimeNames=['Game2D.ts',...(await fs.readdir(path.join(projectPath,'Assets'))).filter(n=>['AgentAudioDetector.ts','AgentAudioKeyword.ts','AudioDetector.ts','KeywordDetector.ts'].includes(n)).sort()];
 const runtimeHashes=async()=>Promise.all(runtimeNames.map(async n=>createHash('sha256').update(await fs.readFile(path.join(projectPath,'Assets',n))).digest('hex')));
 const originals=await runtimeHashes();
 // 按实际运行库哈希选择独立审计的输入与期望值，未知曲线不得套用旧断言。
 const volumeCases={
  '5bc2098d93d00366bd87cebb2ee1a13dff16c98edb90b1ba5717965ceec10dfc':{version:'9.4.0',input:0.001,expected:Math.pow(10/35,0.7)},
  '245ecbd4bba69ce2ff606b6b1bc4ba8a4e1cbd7abe866fbb0b48090b807c5698':{version:'9.4.1',input:0.1,expected:Math.pow(6/9,0.7)},
+ 'cbf0bc09b08c15f880dbf9796764a94e210c98ad7f9efa1a67f3c9e88737a531':{version:'9.6.0',input:0.1,expected:Math.pow(6/9,0.7)},
 };
-const volumeCase=volumeCases[originals[1]];
+const detectorIndex=runtimeNames.findIndex(n=>n==='AudioDetector.ts'||n==='AgentAudioDetector.ts');
+const volumeCase=volumeCases[originals[detectorIndex]];
 if(!volumeCase){await client.close();throw Error('音量运行库尚未审计，请核对换算曲线后添加测试样例');}
 const report={startedAt:new Date().toISOString(),originalRuntimeHashes:originals,volumeCase,checkpoints:[]};
 let started=false;

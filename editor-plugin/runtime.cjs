@@ -2,6 +2,8 @@
 // 编辑器端只执行已登记命令；会话隔离、工程绑定、备份和超时检查在此再次执行。
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const Ajv=require('ajv');
+const {execFile}=require('child_process');
+const {promisify}=require('util');
 const runtimeHash=crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
 const inside=(p,r)=>{const rel=path.relative(r,p);return rel===''||(!rel.startsWith('..'+path.sep)&&rel!=='..'&&!path.isAbsolute(rel));};
 // 只读取 PNG/JPEG 头部尺寸；编辑器内置 Node 与用户 Node 的原生模块 ABI 不一定一致，不能在此加载 sharp。
@@ -25,6 +27,35 @@ function checkedPath(value,root,allowMissing=false){
  if(!inside(full,root)||!inside(canonical(existing),canonical(root)))throw Error('路径超出工程边界');
  if(!allowMissing&&!fs.existsSync(full))throw Error('路径不存在');
  return full;
+}
+function usesMaterialActions(version){
+ const [major,minor]=String(version??'').split('.').map(Number);
+ return major>9||(major===9&&minor>=6);
+}
+// 从当前安装包和像塑已下载的官方预览目录读取，不内置旧版本素材地址。
+function humanActionCatalog(config){
+ const categories={preview_face:'face',preview_hand:'hand',preview_fullbody:'fullbody',preview_twoperson:'twoperson'},actions=new Map();
+ for(const {manifest,baseRoot} of config.previewCatalogs??[]){
+  let data;try{data=JSON.parse(fs.readFileSync(manifest,'utf8'));}catch(e){if(e.code==='ENOENT')continue;throw e;}
+  for(const item of data.defaultVideoInputModels??[]){
+   if(!categories[item.type]||typeof item.name!=='string'||typeof item.resourceUrl!=='string')continue;
+   const id=item.name.split('||')[0];if(actions.has(id))continue;
+   let file;try{file=checkedPath(path.resolve(baseRoot,item.resourceUrl),path.dirname(manifest));}catch(e){if(e.message==='路径不存在')continue;throw e;}
+   if(!/\.(mp4|mov)$/i.test(file)||!fs.statSync(file).isFile())continue;
+   actions.set(id,{id,category:categories[item.type],inputType:item.type,filePath:file});
+  }
+ }
+ return [...actions.values()];
+}
+function resolveHumanAction(config,params,root){
+ if(params.materialRef){
+  const filePath=checkedPath(params.materialRef,root);
+  if(!/\.(mp4|mov)$/i.test(filePath)||!fs.statSync(filePath).isFile())throw Error('PLAY_MATERIAL_INVALID: 需要工程内 MP4/MOV 文件');
+  return {filePath,inputType:params.inputType};
+ }
+ const action=humanActionCatalog(config).find(a=>a.id===params.actionId);
+ if(!action)throw Error('PLAY_ACTION_UNAVAILABLE: '+params.actionId+'；先调用 playHumanActions 查询本机可用素材');
+ return action;
 }
 function backupProject(root,session){
  const dest=checkedPath(path.join('.codex','backups',session),root,true);
@@ -68,6 +99,42 @@ class Runtime {
  }
  status(){const p=this.host.getProject();return {sessionId:this.session,pid:process.pid,startedAt:this.startedAt,heartbeat:Date.now(),projectPath:p?.path||null,ready:!!p?.path,bridgeVersion:'0.2.0',protocolVersion:2,runtimeHash,catalogHash:this.catalogHash,editorVersion:this.config.editorVersion??null,logRoot:process.argv.find(a=>a.startsWith('--logPath='))?.slice(10)??null,busy:this.busy};}
  advertise(){try{const tmp=path.join(this.dir,'session.tmp');fs.writeFileSync(tmp,JSON.stringify(this.status()));fs.renameSync(tmp,path.join(this.dir,'session.json'));}catch(e){console.error('[XiangsuMCP]',String(e));}}
+ async humanAction(request,params,root){
+  const stateFile=path.join(this.dir,'human-action.json');
+  let state;try{state=JSON.parse(fs.readFileSync(stateFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
+  if(state&&state.projectPath!==root)throw Error('PLAY_ACTION_PROJECT_CHANGED: 先返回原工程恢复预览输入');
+  const id=params.sessionId??this.session;
+  if(state&&state.id!==id)throw Error('PLAY_ACTION_SESSION_ACTIVE: 先恢复已有动作会话 '+state.id);
+  const send=async(commandType,p,keys)=>{
+   const result=await this.host.execute({requestID:request.id,commandType,params:p,paramKeys:keys});
+   if(!result||result.success===false)throw Error('PLAY_ACTION_COMMAND_FAILED: '+JSON.stringify(result));
+   return result;
+  };
+  const begin=async()=>{
+   if(state?.begun)return {success:true,reused:true,sessionId:id};
+   if(state)throw Error('PLAY_ACTION_BEGIN_INCOMPLETE: 先调用 restoreHumanActionSession');
+   // 先保存恢复身份；即使官方命令执行后抛错，也能重试恢复而非覆盖原输入快照。
+   state={id,projectPath:root,begun:false};fs.writeFileSync(stateFile,JSON.stringify(state));
+   const result=await send('beginHumanActionSession',{sessionId:id},['sessionId']);
+   state.begun=true;fs.writeFileSync(stateFile,JSON.stringify(state));return result;
+  };
+  const restore=async()=>{
+   if(!state)return {success:true,restored:false};
+   const result=await send('restoreHumanActionSession',{sessionId:id},['sessionId']);
+   fs.unlinkSync(stateFile);state=null;return result;
+  };
+  if(request.command==='beginHumanActionSession')return begin();
+  if(request.command==='restoreHumanActionSession')return restore();
+  // 路径和动作 ID 在 begin 之前检查，错误输入不得更改预览。
+  const action=resolveHumanAction(this.config,params,root),autoBegin=!state;
+  try{
+   await begin();
+   return await send('switchHumanAction',{sessionId:id,actionId:action.filePath,filePath:action.filePath,inputType:action.inputType},['sessionId','actionId','filePath','inputType']);
+  }catch(error){
+   if(autoBegin)try{await restore();}catch(cleanupError){throw Error(String(error)+'；动作恢复失败：'+String(cleanupError));}
+   throw error;
+  }
+ }
  async execute(request){
   if(request.sessionId!==this.session)throw Error('会话已失效');
   if(!Number.isFinite(request.expiresAt)||request.expiresAt<Date.now())throw Error('请求已过期');
@@ -82,6 +149,21 @@ class Runtime {
   for(const [key,schema]of Object.entries(spec.inputSchema.properties||{}))if(params[key]===undefined&&schema.default!==undefined)params[key]=schema.default;
   const valid=this.validators.get(spec.name);
   if(!valid(params))throw Error('参数校验失败: '+JSON.stringify(valid.errors));
+  if(['getHumanActions','switchHumanAction','beginHumanActionSession','restoreHumanActionSession'].includes(spec.name)){
+   if(usesMaterialActions(this.config.editorVersion)){
+    if(spec.name==='getHumanActions'){
+     const actions=[];
+     for(const action of humanActionCatalog(this.config)){
+      const {stdout}=await promisify(execFile)(this.config.ffprobePath,['-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',action.filePath],{windowsHide:true,timeout:10000});
+      const durationMs=Number(stdout.trim())*1000;if(!Number.isFinite(durationMs)||durationMs<=0)throw Error('PLAY_MATERIAL_DURATION_INVALID: '+action.id);
+      const {filePath,...info}=action;actions.push({...info,durationMs,recommendedWaitMs:Math.min(5000,Math.max(1,Math.round(durationMs*0.9)))});
+     }
+     return {actions};
+    }
+    return this.humanAction(request,params,root);
+   }
+   if(spec.name!=='getHumanActions'&&(spec.name!=='switchHumanAction'||params.materialRef||params.sessionId))throw Error('PLAY_MATERIAL_REQUIRES_9_6: 旧版请使用 actionId');
+  }
   if(params.projectPath && canonical(params.projectPath)!==canonical(root))throw Error('命令工程路径不匹配');
   // 路径型命令不得读写到选定工程之外；导入素材也先放到工程中。
   for(const key of ['path','filePath','assetPath','gitRepoPath'])if(typeof params[key]==='string')params[key]=checkedPath(params[key],root,true);
@@ -142,4 +224,4 @@ class Runtime {
  }
  stop(){this.closed=true;clearInterval(this.timer);clearInterval(this.heartbeat);if(this.playListener)this.playEvents?.off?.('PreviewRenderMsg',this.playListener);try{fs.unlinkSync(path.join(this.dir,'session.json'));}catch{}}
 }
-module.exports={imageSize,Runtime,inside,checkedPath,backupProject};
+module.exports={imageSize,Runtime,inside,checkedPath,backupProject,usesMaterialActions,humanActionCatalog,resolveHumanAction};

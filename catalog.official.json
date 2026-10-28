@@ -1,0 +1,2478 @@
+{
+  "editorVersion": "9.7.2.918909817",
+  "server": {
+    "name": "xiangsu-mcp-manager",
+    "version": "1.0.0"
+  },
+  "tools": [
+    {
+      "name": "health",
+      "description": "检查 xiangsu-mcp-manager 是否可访问，并返回当前在线的编辑器实例数量。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_instances",
+      "description": "列出当前在线的像塑编辑器实例。后续调用工具时需使用返回的 instance_id 指定目标实例。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_project_context",
+      "description": "获取指定像塑编辑器实例的精简工程初始化与恢复上下文。上下文压缩后应使用 resume.handoff；核对工程后按 AGENTS.md 先完成本轮输入记录，再查询工程或规划特效；按 requires_read 补读恢复遗漏块。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "report_install",
+      "description": "在宿主完成像塑 MCP 安装尝试后调用，汇报成功或失败。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "app_name": {
+            "type": "string",
+            "description": "当前外部宿主平台名称，例如 codex、claude_code、cursor、trae_cn、workbuddy。"
+          },
+          "succeed": {
+            "type": "boolean",
+            "description": "安装是否成功。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "app_name",
+          "succeed"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_scene",
+      "description": "获取当前静态场景树，默认返回精简摘要。也可限定到某个对象的子树、限制返回深度，或仅返回包含名称的层级骨架。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "summary": {
+            "type": "boolean",
+            "description": "是否返回精简摘要而非完整的标准化场景数据，默认为 true。"
+          },
+          "subtree": {
+            "type": "string",
+            "description": "可选的场景对象 GUID；传入后只返回该对象及其后代。"
+          },
+          "depth": {
+            "type": "number",
+            "description": "可选的场景对象最大层级深度，必须大于等于 1；适合只查看前几层。"
+          },
+          "names_only": {
+            "type": "boolean",
+            "description": "设为 true 时只返回最小层级字段：guid、name 和 children。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "inspect",
+      "description": "检查指定 GUID，并将结果标准化为场景对象、资源或组件。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "guid": {
+            "type": "string",
+            "description": "场景对象、资源或组件的 GUID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_scene_view",
+      "description": "将当前 Scene 面板截取为带标注的图片，并返回截图及记录各对象屏幕边界的附加数据。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "max_size": {
+            "type": "number",
+            "description": "可选的输出图片长边最大像素数。"
+          },
+          "object_guids": {
+            "type": "array",
+            "description": "可选的场景对象 GUID 列表，仅标注这些对象。",
+            "items": {
+              "type": "string",
+              "description": "场景对象 GUID。"
+            }
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "read_visual_scripting_graph",
+      "description": "从磁盘读取工程的可视化脚本图清单，包括 Graph/graph.json、.compgraph 和 .ssubgraph 资产。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "container_id": {
+            "type": "string",
+            "description": "可选的容器 ID，用于限定返回的工程图容器；仅在读取工程图时生效。"
+          },
+          "full": {
+            "type": "boolean",
+            "description": "设为 true 时返回磁盘上的原始图数据，而非摘要视图。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "describe_project",
+      "description": "根据当前场景和资源清单生成精简的工程摘要。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_resources",
+      "description": "按类型分组列出当前工程资源；可用 type_filter 收窄到 Material / Texture / VFX / Script / Model 等常见分类。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "type_filter": {
+            "type": "string",
+            "description": "可选的资源类型过滤；支持按 group / type / provider 过滤。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "preview_asset",
+      "description": "按 GUID 预览资产。贴图和视频直接返回缩略图；材质、网格、模型和预制体会使用预览渲染器。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "guid": {
+            "type": "string",
+            "description": "要预览的资产 GUID。"
+          },
+          "max_size": {
+            "type": "number",
+            "description": "可选的输出图片长边最大像素数。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "validate_omtl",
+      "description": "校验 OMTL 内容的语法。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "content": {
+            "type": "string",
+            "description": "要校验的 OMTL 内容。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "set_preview_video",
+      "description": "按 tracking_type、精确 video_name 或精确 resource_url 切换当前 Preview 输入；建议先用 list_preview_videos 查看可选源。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "tracking_type": {
+            "type": "string",
+            "description": "Tracking 类型；可先选常见类型，也可以手填宿主返回的其他值。"
+          },
+          "video_name": {
+            "type": "string",
+            "description": "list_preview_videos 返回的精确 preview source 名称；优先级高于 tracking_type。"
+          },
+          "resource_url": {
+            "type": "string",
+            "description": "list_preview_videos 返回的精确资源路径；优先级高于 video_name 和 tracking_type。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_preview_videos",
+      "description": "按 tracking_type 分组列出可用的预览输入，并包含编辑器当前可见的本地或工具提供的非跟踪媒体源。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_current_preview_video",
+      "description": "读取当前选中的预览输入，包括 tracking_type、source_type、internal_type 和 resource_url。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "capture_preview",
+      "description": "一次调用内重新加载预览并截取最新画面。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "interact_by_dsl",
+      "description": "执行预览交互命令。支持 screenshot、touch/touch_down/touch_up、drag(x1,y1,x2,y2)、wait(ms)、reset_preview、pause_preview、resume_preview、start_preview_record、stop_preview_record、record_preview_video_mp4 和 transport_preview_property。touch/touch_down/touch_up 的 x/y 使用 [0,1] 归一化坐标；为兼容旧调用，也会自动转换 720x1280 像素坐标。请使用准确的命令名，不要猜测别名。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "commands": {
+            "type": "array",
+            "description": "由交互命令对象组成的原生 JSON 数组。每项必须包含 command_type，可选填 params。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "command_type": {
+                  "type": "string",
+                  "description": "交互命令名称。"
+                },
+                "params": {
+                  "type": "object",
+                  "description": "命令参数。零参数命令可省略或传空对象。"
+                },
+                "alias": {
+                  "type": "string",
+                  "description": "可选别名。"
+                }
+              },
+              "required": [
+                "command_type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "query_knowledge",
+      "description": "处理不熟悉的场景、组件或资源前，先搜索像塑知识库。每次调用只查询一个明确分类；宽泛检索使用英文 `query`，已知目标名称时使用精确查询参数。仅支持 component、object、resource；Skill 通过 skills_root/SKILL.md 定位并读取，不使用 category=\"skill\"。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "category": {
+            "type": "string",
+            "description": "知识分类：component（组件）、object（对象）、resource（资源）。",
+            "enum": [
+              "component",
+              "object",
+              "resource"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "description": "用于宽泛检索的英文搜索短语。"
+          },
+          "max_results": {
+            "type": "number",
+            "description": "最多返回多少条搜索结果。"
+          },
+          "component_type": {
+            "type": "string",
+            "description": "category=\"component\" 时要精确查询的组件类型名。"
+          },
+          "resource_type": {
+            "type": "string",
+            "description": "category=\"resource\" 时要精确查询的资源类型名。"
+          },
+          "tags": {
+            "type": "array",
+            "description": "查询 resource 时使用的标签过滤条件。",
+            "items": {
+              "type": "string",
+              "description": "资源标签。"
+            }
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "category"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "project_status",
+      "description": "获取稳定的工程元数据，包括 has_active_project、path、name、project_id、project_status、is_saved、is_changed、scene_dirty 和 edit_mode。场景与资产详情请使用 describe_project、get_scene 和 list_resources。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_plan",
+      "description": "保存当前工程的方案 / design brief 到 `.mcp_agent/design_plan.md`，用于跨轮续接。它只持久化方案，不会替代 save_project 落盘工程改动。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "type": {
+            "type": "string",
+            "description": "方案类型。EffectWorkflow 默认用 effect；其他自由方案可用 general。",
+            "enum": [
+              "effect",
+              "general"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "方案标题，例如“植物大战僵尸 ShootingEffect 方案”。"
+          },
+          "content": {
+            "type": "string",
+            "description": "完整的 Markdown 方案正文，章节结构以对应工作流的方案模板为准。"
+          },
+          "status": {
+            "type": "string",
+            "description": "方案状态。默认 confirmed；如果用户还没拍板，可先存 draft。",
+            "enum": [
+              "confirmed",
+              "draft"
+            ]
+          },
+          "workflow": {
+            "type": "string",
+            "description": "可选的工作流名，例如 EffectWorkflow。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "title",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "update_handoff_context",
+      "description": "维护当前像塑工程的 handoff 上下文，包括用户输入记录和可恢复的阶段摘要。\n\n记录用户输入：{instance_id,input_messages:[{message_id,text}],trigger_message_id?,client_context?}。\ninput_messages 是与本任务相关的用户原文消息链，按原顺序逐字复制，禁止总结、改写、拼接或混入 Agent 回复。\ntrigger_message_id 指向本次工具执行由哪条用户消息触发；省略时默认使用 input_messages 最后一条。\nclient_context 记录当前 Agent 和模型名称；agent_name 自动转为小写，agent_name/model_name 必须来自当前运行环境中可明确确认的信息。\n输入记录成功后再查询工程、检索知识或规划特效。Trace 关联由服务端自动维护。\n\n更新阶段摘要：{instance_id,checkpoint:{expected_revision,expected_mutation_revision,...}}。\n首次摘要需包含 task 和 knowledge；后续只传受影响块及最近返回的版本号。\n版本号和摘要块放在 checkpoint 内，intention 放在顶层。完成进度写入 task.summary，不传 completed_milestones。\n字段限制：checkpoint.artifacts 只接受 role/kind/name/parent/path；verification 只接受 kind/status/summary。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "conversation_id": {
+            "type": "string",
+            "description": "可选宿主对话标识；省略时由服务端沿用工程记录，无需 Agent 手动维护。"
+          },
+          "input_messages": {
+            "type": "array",
+            "description": "与本任务相关的用户原文消息链，包含原始目标消息和本次触发消息。按原顺序逐字复制；禁止总结、改写、拼接或包含 Agent 回复。每个 message_id 在本对话内保持稳定。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string",
+                  "description": "宿主消息 ID；无宿主 ID 时可省略，由服务端生成并返回，重试沿用返回值。"
+                },
+                "text": {
+                  "type": "string",
+                  "description": "未经修改的用户原文；服务端原样保存，不做 trim、空白归一化或截断。"
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "trigger_message_id": {
+            "type": "string",
+            "description": "触发本次工具执行的用户消息 ID；必须属于 input_messages。省略时默认使用 input_messages 最后一条。"
+          },
+          "client_context": {
+            "type": "object",
+            "description": "本轮调用使用的 Agent 和模型信息，仅用于 Trace 观测；agent_name 自动转为小写。",
+            "properties": {
+              "agent_name": {
+                "type": "string",
+                "description": "当前宿主 Agent 的准确名称，例如 trae_cn、claude_code、codex；必须来自当前运行环境中可明确确认的信息，不要猜测或编造。"
+              },
+              "model_name": {
+                "type": "string",
+                "description": "当前宿主 Agent 使用的模型名称；必须来自当前运行环境中可明确确认的信息，不要猜测或编造。"
+              }
+            },
+            "additionalProperties": false
+          },
+          "checkpoint": {
+            "type": "object",
+            "description": "按块更新当前摘要：省略保留，提供整块替换，数组 [] 清空。expected_revision 和 expected_mutation_revision 必须来自最近的 get_project_context 或 update_handoff_context 返回值，不能省略或猜测。",
+            "properties": {
+              "expected_revision": {
+                "type": "number",
+                "description": "最近一次 get_project_context 或 update_handoff_context 返回的 revision；尚无快照时传 0。"
+              },
+              "expected_mutation_revision": {
+                "type": "number",
+                "description": "get_project_context、update_handoff_context 或最近一次修改/验证工具返回的 mutation_revision。"
+              },
+              "task": {
+                "type": "object",
+                "description": "本轮任务摘要：{objective, workflow, current_stage, status, summary}。status 可取 planning、executing、verifying、blocked 或 completed。",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "description": "任务目标。"
+                  },
+                  "workflow": {
+                    "type": "string",
+                    "description": "当前工作流名称，例如 EffectWorkflow。"
+                  },
+                  "current_stage": {
+                    "type": "string",
+                    "description": "当前阶段。"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "planning、executing、verifying、blocked 或 completed。",
+                    "enum": [
+                      "planning",
+                      "executing",
+                      "verifying",
+                      "blocked",
+                      "completed"
+                    ]
+                  },
+                  "summary": {
+                    "type": "string",
+                    "description": "精简任务摘要。"
+                  }
+                },
+                "required": [
+                  "objective",
+                  "workflow",
+                  "current_stage",
+                  "status",
+                  "summary"
+                ],
+                "additionalProperties": false
+              },
+              "knowledge": {
+                "type": "object",
+                "description": "当前知识摘要：{checkpoints:[{source_id, applied_rules}], confirmed_facts:[{subject, facts, source}]}。applied_rules 和 facts 必须是 string[]；不要传 rules_digest、skill_pack_digest 或 knowledge_digest，内容 digest 由服务端补充。",
+                "properties": {
+                  "checkpoints": {
+                    "type": "array",
+                    "description": "采用过的规则或技能检查点数组。",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source_id": {
+                          "type": "string",
+                          "description": "规则、技能或事实源 ID。"
+                        },
+                        "applied_rules": {
+                          "type": "array",
+                          "description": "该事实源已采用的规则，必须是 string[]。",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "source_id",
+                        "applied_rules"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "confirmed_facts": {
+                    "type": "array",
+                    "description": "已确认事实数组。",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "subject": {
+                          "type": "string",
+                          "description": "事实主题。"
+                        },
+                        "facts": {
+                          "type": "array",
+                          "description": "事实列表，必须是 string[]。",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "source": {
+                          "type": "string",
+                          "description": "事实来源。"
+                        }
+                      },
+                      "required": [
+                        "subject",
+                        "facts",
+                        "source"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "checkpoints",
+                  "confirmed_facts"
+                ],
+                "additionalProperties": false
+              },
+              "artifacts": {
+                "type": "array",
+                "description": "恢复任务所需的关键产物：[{role, kind, name?, parent?, path?}]。kind 可取 sceneObject、component、resource、script 或 material。只保存稳定定位信息；不要传 guid、observed_revision 或其他运行期 ID 字段。",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "type": "string",
+                      "description": "产物在任务中的角色。"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "description": "sceneObject、component、resource、script 或 material。",
+                      "enum": [
+                        "sceneObject",
+                        "component",
+                        "resource",
+                        "script",
+                        "material"
+                      ]
+                    },
+                    "parent": {
+                      "type": "string",
+                      "description": "同名对象的父级名称或层级路径。"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "脚本或文件路径。"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "产物名称。"
+                    }
+                  },
+                  "required": [
+                    "role",
+                    "kind"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "verification": {
+                "type": "array",
+                "description": "最近的验证结论：[{kind, status, summary}]。kind 可取 context、scene、preview、script 或 interaction；status 可取 passed、failed 或 inconclusive；只传 kind、status、summary，验证时间由服务端记录，不传 at 等时间字段。",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "description": "context、scene、preview、script 或 interaction。",
+                      "enum": [
+                        "context",
+                        "scene",
+                        "preview",
+                        "script",
+                        "interaction"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "passed、failed 或 inconclusive。",
+                      "enum": [
+                        "passed",
+                        "failed",
+                        "inconclusive"
+                      ]
+                    },
+                    "summary": {
+                      "type": "string",
+                      "description": "验证结论摘要。"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "status",
+                    "summary"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "open_issues": {
+                "type": "array",
+                "description": "仍未解决且会影响后续工作的事项，必须是 string[]；不要传 {title, impact, next_step} 对象。",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "next_actions": {
+                "type": "array",
+                "description": "恢复任务后要执行的具体后续动作，必须是 string[]；不要传 {title} 对象。",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "implementation": {
+                "type": "array",
+                "description": "继续修改所需的关键实现决策、约束和文件/函数入口，整理后整块替换。",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "expected_revision",
+              "expected_mutation_revision"
+            ],
+            "additionalProperties": false
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_project",
+      "description": "将当前已打开的 DYEH 工程（项目）保存到磁盘；不会新建 AI 工作流。首次保存未落盘工程时必须传入 path。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "path": {
+            "type": "string",
+            "description": "可选的工程保存目录。已有工程留空时原位保存；新建工程应提供永久目录路径。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_script_logs",
+      "description": "读取编辑器最近采集到的结构化脚本 / 运行时日志；脚本编译结果优先看 add_script / edit_script 返回的 compile_state，独立 TS 检查使用 run_otsc_check。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "count": {
+            "type": "number",
+            "description": "最多返回多少条日志。默认 200，最大 500。"
+          },
+          "query": {
+            "type": "string",
+            "description": "可选的模糊过滤；会同时匹配内容、tag、env 和文件路径。"
+          },
+          "min_level": {
+            "type": "string",
+            "description": "可选的最小日志级别。",
+            "enum": [
+              "trace",
+              "debug",
+              "info",
+              "warn",
+              "error"
+            ]
+          },
+          "tag": {
+            "type": "string",
+            "description": "可选的精确 tag 过滤，例如 Script、UserScript。"
+          },
+          "env": {
+            "type": "string",
+            "description": "可选的精确 env 过滤。"
+          },
+          "after_time": {
+            "type": "string",
+            "description": "可选的 ISO 时间戳；只返回这个时间之后的新日志。"
+          },
+          "order": {
+            "type": "string",
+            "description": "返回顺序；desc 为最新优先，asc 为时间正序。默认 desc。",
+            "enum": [
+              "desc",
+              "asc"
+            ]
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "run_otsc_check",
+      "description": "对当前工程或指定工程路径运行 OTSC 编译检查，用于诊断 TypeScript 编译问题。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "project_path": {
+            "type": "string",
+            "description": "可选的工程路径，默认使用当前活跃工程。"
+          },
+          "tsconfig_path": {
+            "type": "string",
+            "description": "可选的 tsconfig 路径，默认相对于 project_path。"
+          },
+          "build": {
+            "type": "boolean",
+            "description": "是否以构建模式运行 OTSC，默认为 true。"
+          },
+          "no_emit": {
+            "type": "boolean",
+            "description": "检查时是否强制启用 noEmit，默认为 true。"
+          },
+          "incremental": {
+            "type": "boolean",
+            "description": "是否启用增量模式。"
+          },
+          "pretty": {
+            "type": "boolean",
+            "description": "是否启用 OTSC 美化输出。"
+          },
+          "timeout_ms": {
+            "type": "number",
+            "description": "OTSC 最长运行时间，单位为毫秒。"
+          },
+          "max_output_chars": {
+            "type": "number",
+            "description": "stdout 和 stderr 合计保留的最大字符数。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "edit_by_dsl",
+      "description": "用于批量编辑像塑场景和资源，覆盖绝大多数场景与资源编辑命令。调用前必须完整读取 SceneEditing Skill。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "commands": {
+            "type": "array",
+            "description": "由编辑命令对象组成的原生 JSON 数组。每项必须包含 command_type 和 params。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "command_type": {
+                  "type": "string",
+                  "description": "编辑命令名称。"
+                },
+                "params": {
+                  "type": "object",
+                  "description": "命令参数，具体字段由对应 DSL command 定义校验。"
+                },
+                "alias": {
+                  "type": "string",
+                  "description": "供同一批次后续命令通过 $ref 使用的可选别名。"
+                }
+              },
+              "required": [
+                "command_type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "generate_image",
+      "description": "通过图片工作流生成一张静态图片资产并导入当前工程；不会在 AI Graph 中创建或保留生图算法节点。若结果必须作为可执行工作流中的生成步骤，使用 get_workflow_capabilities + apply_workflow_patch(create_image_generation_node/connect_nodes)。需要生成多张图片、多段音频或图音混合资产时，请改用 generate_assets_batch。支持上传本地参考图和透明背景分割。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "name": {
+            "type": "string",
+            "description": "这张图片导入工程后的资产名称。"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "这张图片的生成提示词。不要在一个 prompt 中塞入多张图片需求；多资产请求请使用 generate_assets_batch。"
+          },
+          "width": {
+            "type": "number",
+            "description": "可选的目标宽度，单位为像素，默认 1024。"
+          },
+          "height": {
+            "type": "number",
+            "description": "可选的目标高度，单位为像素，默认 1024。"
+          },
+          "need_seg": {
+            "type": "boolean",
+            "description": "是否要求进行透明背景分割。"
+          },
+          "reference_image_paths": {
+            "type": "array",
+            "description": "可选的本地参考图片路径，用于上传并引导图片生成。",
+            "items": {
+              "type": "string",
+              "description": "本地参考图片的绝对路径。"
+            }
+          },
+          "timeout_ms": {
+            "type": "number",
+            "description": "可选的轮询超时时间，单位为毫秒。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "name",
+          "prompt"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "generate_audio",
+      "description": "通过音频工作流生成一个音频资产并导入当前工程。需要生成多段音频、多张图片或图音混合资产时，请改用 generate_assets_batch。目标时长应直接写入 prompt。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "name": {
+            "type": "string",
+            "description": "这段音频导入工程后的资产名称。"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "这段音频的生成提示词，需包含目标时长。不要在一个 prompt 中塞入多段音频需求；多资产请求请使用 generate_assets_batch。"
+          },
+          "timeout_ms": {
+            "type": "number",
+            "description": "可选的轮询超时时间，单位为毫秒。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "name",
+          "prompt"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "generate_assets_batch",
+      "description": "为当前工程批量生成图片和音频 AIGC 资产，并等待所有任务完成或失败后返回。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "assets": {
+            "type": "array",
+            "description": "必填。每项格式为 {kind:\"image\"|\"audio\", name, prompt, ...}。图片还可传 width、height、need_seg、reference_image_paths、timeout_ms；音频还可传 timeout_ms。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "description": "资产类型，支持 image 或 audio。",
+                  "enum": [
+                    "image",
+                    "audio"
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "description": "导入工程后的资产名称。"
+                },
+                "prompt": {
+                  "type": "string",
+                  "description": "资产生成提示词。"
+                },
+                "width": {
+                  "type": "number",
+                  "description": "图片宽度，仅图片资产使用。"
+                },
+                "height": {
+                  "type": "number",
+                  "description": "图片高度，仅图片资产使用。"
+                },
+                "need_seg": {
+                  "type": "boolean",
+                  "description": "是否生成透明背景图片，仅图片资产使用。"
+                },
+                "reference_image_paths": {
+                  "type": "array",
+                  "description": "本地参考图片的绝对路径列表，仅图片资产使用。",
+                  "items": {
+                    "type": "string",
+                    "description": "本地参考图片的绝对路径。"
+                  }
+                },
+                "timeout_ms": {
+                  "type": "number",
+                  "description": "该资产的可选生成超时时间，单位毫秒；默认 60000，非必要无需填写。"
+                }
+              },
+              "required": [
+                "kind",
+                "name",
+                "prompt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "assets"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_workflow_context",
+      "description": "读取指定 AI 工作流图的稳定、脱敏上下文，返回节点 position/size、ai_graph_id 与 visual_container_id；新增节点应参考现有 position，后续写操作只能使用 ai_graph_id。instance_id 只用于 Gateway 路由。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "graph_id": {
+            "type": "string",
+            "description": "要读取的稳定 graph ID；不使用当前选中图。"
+          },
+          "include": {
+            "type": "array",
+            "description": "可选返回区段。默认返回全部。",
+            "items": {
+              "type": "string",
+              "enum": [
+                "nodes",
+                "ports",
+                "edges",
+                "active_attempts"
+              ]
+            }
+          },
+          "request_id": {
+            "type": "string",
+            "description": "可选调用方请求 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "graph_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_workflow_capabilities",
+      "description": "查询图片生成基模能力。algorithm_list 分页返回“图片生成”页签可选基模（如 Seedream 5.0 Pro、Seedream 4.3），不会返回拼豆世界等画风算法；algorithm_detail 使用基模 ID 返回字段、版本和端口。instance_id 仅用于 Gateway 路由。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "query_mode": {
+            "type": "string",
+            "enum": [
+              "algorithm_list",
+              "algorithm_detail"
+            ]
+          },
+          "algorithm_id": {
+            "type": "string",
+            "description": "algorithm_detail 时填写 algorithm_list 返回的 baseModelId。"
+          },
+          "base_model_id": {
+            "type": "string",
+            "description": "可选；默认与 algorithm_id 指向同一图片生成基模。"
+          },
+          "cursor": {
+            "type": "number"
+          },
+          "page_size": {
+            "type": "number"
+          },
+          "page_token": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "可选调用方请求 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "query_mode"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "upload_workflow_image",
+      "description": "传入用户原图在 DYEH 主机上的绝对路径，由 DYEH 读取原始字节、校验并走现有本地图片上传流程。禁止 Base64、URL、自行转 WebP、压缩或绕过 MCP 上传。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "工程内幂等请求 ID。"
+          },
+          "project_persistent_id": {
+            "type": "string",
+            "description": "当前工程的持久 ID。"
+          },
+          "source": {
+            "type": "object",
+            "description": "用户原图本地路径；不传图片字节。",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "local_path"
+                ]
+              },
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path to the original user image on the DYEH host. No URL, Base64, transcoding or recompression."
+              }
+            },
+            "required": [
+              "kind",
+              "file_path"
+            ],
+            "additionalProperties": false
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "request_id",
+          "project_persistent_id",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "apply_workflow_patch",
+      "description": "对显式 graph_id 原子应用强类型工作流 Patch；使用 revision CAS、稳定端口和工程级写锁，dry_run 只返回计划。New nodes must be created with a client_ref and referenced via that client_ref in the same patch; fictional node_ids are forbidden.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "工程内幂等请求 ID。"
+          },
+          "project_persistent_id": {
+            "type": "string",
+            "description": "当前工程持久 ID。"
+          },
+          "graph_id": {
+            "type": "string",
+            "description": "显式目标工作流图 ID。"
+          },
+          "expected_graph_revision": {
+            "type": "string",
+            "description": "get_workflow_context 返回的 graph_revision。"
+          },
+          "operations": {
+            "type": "array",
+            "description": "按顺序执行的六种可判别 Patch 操作。",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "create_image_input_node"
+                      ]
+                    },
+                    "client_ref": {
+                      "type": "string",
+                      "description": "Patch-local identifier to reference this new node in subsequent operations. Required if you connect to it."
+                    },
+                    "node_type_id": {
+                      "type": "string"
+                    },
+                    "schema_version": {
+                      "type": "string"
+                    },
+                    "asset_id": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "node_type_id",
+                    "schema_version",
+                    "asset_id"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "create_image_generation_node"
+                      ]
+                    },
+                    "client_ref": {
+                      "type": "string",
+                      "description": "Patch-local identifier to reference this new node in subsequent operations. Required if you connect to it."
+                    },
+                    "node_type_id": {
+                      "type": "string"
+                    },
+                    "schema_version": {
+                      "type": "string"
+                    },
+                    "algorithm_id": {
+                      "type": "string",
+                      "description": "AIStyleItem.templateId returned by capability detail."
+                    },
+                    "base_model_id": {
+                      "type": "string",
+                      "description": "Selected base model ID returned by capability detail."
+                    },
+                    "capability_revision": {
+                      "type": "string",
+                      "description": "Revision returned by algorithm_detail."
+                    },
+                    "params": {
+                      "type": "object"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "node_type_id",
+                    "schema_version",
+                    "params"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "update_image_generation_node"
+                      ]
+                    },
+                    "node_id": {
+                      "type": "string",
+                      "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                    },
+                    "client_ref": {
+                      "type": "string",
+                      "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                    },
+                    "algorithm_id": {
+                      "type": "string"
+                    },
+                    "base_model_id": {
+                      "type": "string"
+                    },
+                    "capability_revision": {
+                      "type": "string"
+                    },
+                    "params": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "algorithm_id",
+                    "capability_revision",
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "oneOf": [
+                    {
+                      "required": [
+                        "node_id"
+                      ],
+                      "not": {
+                        "required": [
+                          "client_ref"
+                        ]
+                      }
+                    },
+                    {
+                      "required": [
+                        "client_ref"
+                      ],
+                      "not": {
+                        "required": [
+                          "node_id"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "update_node_params"
+                      ]
+                    },
+                    "node_id": {
+                      "type": "string",
+                      "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                    },
+                    "client_ref": {
+                      "type": "string",
+                      "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                    },
+                    "params": {
+                      "type": "object",
+                      "description": "Image-generation params, or exactly {asset_id} when binding an uploaded managed asset to an image input node."
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "oneOf": [
+                    {
+                      "required": [
+                        "node_id"
+                      ],
+                      "not": {
+                        "required": [
+                          "client_ref"
+                        ]
+                      }
+                    },
+                    {
+                      "required": [
+                        "client_ref"
+                      ],
+                      "not": {
+                        "required": [
+                          "node_id"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "connect_nodes"
+                      ]
+                    },
+                    "source": {
+                      "type": "object",
+                      "properties": {
+                        "node_id": {
+                          "type": "string",
+                          "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                        },
+                        "client_ref": {
+                          "type": "string",
+                          "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                        },
+                        "port_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "port_id"
+                      ],
+                      "additionalProperties": false,
+                      "oneOf": [
+                        {
+                          "required": [
+                            "node_id"
+                          ],
+                          "not": {
+                            "required": [
+                              "client_ref"
+                            ]
+                          }
+                        },
+                        {
+                          "required": [
+                            "client_ref"
+                          ],
+                          "not": {
+                            "required": [
+                              "node_id"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "target": {
+                      "type": "object",
+                      "properties": {
+                        "node_id": {
+                          "type": "string",
+                          "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                        },
+                        "client_ref": {
+                          "type": "string",
+                          "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                        },
+                        "port_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "port_id"
+                      ],
+                      "additionalProperties": false,
+                      "oneOf": [
+                        {
+                          "required": [
+                            "node_id"
+                          ],
+                          "not": {
+                            "required": [
+                              "client_ref"
+                            ]
+                          }
+                        },
+                        {
+                          "required": [
+                            "client_ref"
+                          ],
+                          "not": {
+                            "required": [
+                              "node_id"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "source",
+                    "target"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "disconnect_nodes"
+                      ]
+                    },
+                    "source": {
+                      "type": "object",
+                      "properties": {
+                        "node_id": {
+                          "type": "string",
+                          "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                        },
+                        "client_ref": {
+                          "type": "string",
+                          "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                        },
+                        "port_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "port_id"
+                      ],
+                      "additionalProperties": false,
+                      "oneOf": [
+                        {
+                          "required": [
+                            "node_id"
+                          ],
+                          "not": {
+                            "required": [
+                              "client_ref"
+                            ]
+                          }
+                        },
+                        {
+                          "required": [
+                            "client_ref"
+                          ],
+                          "not": {
+                            "required": [
+                              "node_id"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "target": {
+                      "type": "object",
+                      "properties": {
+                        "node_id": {
+                          "type": "string",
+                          "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                        },
+                        "client_ref": {
+                          "type": "string",
+                          "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                        },
+                        "port_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "port_id"
+                      ],
+                      "additionalProperties": false,
+                      "oneOf": [
+                        {
+                          "required": [
+                            "node_id"
+                          ],
+                          "not": {
+                            "required": [
+                              "client_ref"
+                            ]
+                          }
+                        },
+                        {
+                          "required": [
+                            "client_ref"
+                          ],
+                          "not": {
+                            "required": [
+                              "node_id"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op",
+                    "source",
+                    "target"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "delete_node"
+                      ]
+                    },
+                    "node_id": {
+                      "type": "string",
+                      "description": "Stable ID of an existing node from get_workflow_context. DO NOT use fictional IDs here."
+                    },
+                    "client_ref": {
+                      "type": "string",
+                      "description": "Reference to a node created EARLIER in the SAME patch using its client_ref."
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ],
+                  "additionalProperties": false,
+                  "oneOf": [
+                    {
+                      "required": [
+                        "node_id"
+                      ],
+                      "not": {
+                        "required": [
+                          "client_ref"
+                        ]
+                      }
+                    },
+                    {
+                      "required": [
+                        "client_ref"
+                      ],
+                      "not": {
+                        "required": [
+                          "node_id"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "执行同等校验，但不改变图、不保存。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "request_id",
+          "project_persistent_id",
+          "graph_id",
+          "expected_graph_revision",
+          "operations",
+          "dry_run"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "generate_workflow",
+      "description": "按显式 graph 与 revision 提交完整工作流生成；该工具始终以整图 Combination 为目标，包含上游依赖。target 为旧版兼容字段，会被服务端忽略并固定为 entire_graph；节点级生成不能使用本工具。通常省略可选 input_fingerprint，服务端会从当前真实输入计算；不得自行哈希 graph、revision、ZIP 或素材来猜测该值。retryable:false 或提交结果未知时禁止换 request_id 重提；file not exist 不能直接归因为服务端或 H5 Bundle。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "工程内幂等请求 ID。"
+          },
+          "project_persistent_id": {
+            "type": "string",
+            "description": "当前工程持久 ID。"
+          },
+          "graph_id": {
+            "type": "string",
+            "description": "显式目标工作流图 ID。"
+          },
+          "expected_graph_revision": {
+            "type": "string",
+            "description": "预期 graph revision。"
+          },
+          "target": {
+            "type": "object",
+            "description": "旧版兼容字段；传入任何值都会按完整工作流 {kind:\"entire_graph\"} 处理。"
+          },
+          "input_fingerprint": {
+            "type": "string",
+            "description": "可选并通常省略；服务端会从当前 Graph、target、工作流与输入素材计算。只有拿到同一 graph revision 与 target 的 canonical_input_fingerprint 时才可原样传入；禁止自行哈希或复用旧 attempt 的值。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "request_id",
+          "project_persistent_id",
+          "graph_id",
+          "expected_graph_revision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_workflow_generation_status",
+      "description": "按持久化 attempt 查询唯一派生状态、阶段、进度、安全结果摘要、remote_tasks 只读目标状态与 retryability；不依赖当前 graph。remote_tasks 仅暴露 task_id、node_id、remote_status、materialization_status 与 last_error，不包含提交凭据或内部物化信息。H5 视频物化成功后，results 会返回受控的 project_relative_path、SHA-256、大小和媒体元数据，可与 GetProjectPath 返回的工程根目录拼接后做本地媒体校验。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "project_persistent_id": {
+            "type": "string",
+            "description": "工程持久 ID。"
+          },
+          "graph_id": {
+            "type": "string",
+            "description": "attempt 所属 graph ID。"
+          },
+          "attempt_id": {
+            "type": "string",
+            "description": "generate_workflow 返回的 attempt ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "project_persistent_id",
+          "graph_id",
+          "attempt_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "download_workflow_node_asset",
+      "description": "下载成功图片生成节点的指定结果，直接复用 DYEH UI 下载接口及模型水印规则。返回 DYEH 主机上的导出副本路径，副本保留 24 小时，过期后在后续下载时清理。交付或展示算法结果图片必须使用此工具；禁止扫描缓存、读取工程原图或使用原始 URL/URI 绕过下载，失败不得回退原图。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "project_persistent_id": {
+            "type": "string",
+            "description": "当前工程的持久 ID。"
+          },
+          "graph_id": {
+            "type": "string",
+            "description": "get_workflow_context 返回的 AI graph ID。"
+          },
+          "node_id": {
+            "type": "string",
+            "description": "图片生成节点的稳定 ID。"
+          },
+          "result_index": {
+            "type": "number",
+            "description": "结果在节点中的原始索引，从 0 开始；默认 0。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "project_persistent_id",
+          "graph_id",
+          "node_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_h5_render_config",
+      "description": "获取当前 H5 作者侧压缩、编译和端上验收必须共同使用的短边分辨率与帧率。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "import_h5_render_bundle",
+      "description": "按当前工程和 ArtifactStore 句柄解析 effect.zip；有输入槽的 create/attach 必须携带用户原图，除非显式导入空模板。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "幂等请求 ID，仅允许字母、数字、点、下划线和连字符。"
+          },
+          "artifact_id": {
+            "type": "string",
+            "description": "任务 01 写入 ArtifactStore 的 artifact ID。"
+          },
+          "expected_digest": {
+            "type": "string",
+            "description": "最终 effect.zip 完整字节的小写 SHA-256。"
+          },
+          "input_images": {
+            "type": "array",
+            "description": "按 dyeh-workflow.json input ID 携带原始用户图片；有输入槽时默认必填，DYEH 内部上传并直接绑定。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "input_id": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "local_path"
+                      ]
+                    },
+                    "file_path": {
+                      "type": "string",
+                      "description": "DYEH 主机可读的用户原图绝对路径；禁止 URL、Base64 和转码副本，扩展名必须与对应 slot assetPath 格式一致。"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "file_path"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "input_id",
+                "source"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "allow_empty_inputs": {
+            "type": "boolean",
+            "description": "仅当用户明确要求导入空模板时设为 true；不得用于跳过已有用户图片。"
+          },
+          "source_app_name": {
+            "type": "string",
+            "description": "当前调用宿主标识：trae_cn、workbuddy、cursor、claude_code 或 codex。用于“编辑效果”返回原宿主。",
+            "enum": [
+              "trae_cn",
+              "workbuddy",
+              "cursor",
+              "claude_code",
+              "codex"
+            ]
+          },
+          "import_intention": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "create"
+                    ]
+                  },
+                  "targetGraphId": {
+                    "type": "string"
+                  },
+                  "placement": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "placement"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "attach"
+                    ]
+                  },
+                  "targetGraphId": {
+                    "type": "string"
+                  },
+                  "combinationNodeId": {
+                    "type": "string"
+                  },
+                  "placement": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "targetGraphId",
+                  "combinationNodeId",
+                  "placement"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "replace"
+                    ]
+                  },
+                  "targetGraphId": {
+                    "type": "string"
+                  },
+                  "targetNodeId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "targetGraphId",
+                  "targetNodeId"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "create{targetGraphId?,placement{x,y}}、attach{targetGraphId,placement{x,y},combinationNodeId} 或 replace{targetGraphId,targetNodeId}；create 省略/留空 targetGraphId 时自动创建 AI Graph，attach 会接入明确指定的 Combination。"
+          },
+          "intention": {
+            "type": "string",
+            "description": "本次调用要完成什么；必要时简述原因。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "request_id",
+          "artifact_id",
+          "expected_digest",
+          "source_app_name",
+          "import_intention"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_h5_import_status",
+      "description": "查询当前工程内一次 H5 Bundle 导入状态。instance_id 仅由 Gateway 路由；成功不表示云端 H5 视频渲染完成。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "description": "目标像塑编辑器实例 ID。"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "用于关联查询错误与日志的稳定请求 ID。"
+          },
+          "import_id": {
+            "type": "string",
+            "description": "import_h5_render_bundle 返回的导入 ID。"
+          }
+        },
+        "required": [
+          "instance_id",
+          "request_id",
+          "import_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

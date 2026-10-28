@@ -7,9 +7,13 @@ try{
  await call('sceneOps',{ops:[{op:'add',type:'Text',id:'ProbeText',content:'空白回归',positionMode:'absolute',x:360,y:200,width:700,height:180,fontSize:36,boxDimension:'fixedSize'}]});
  const g=await call('eh_addRenderGroup',{name:'MCP测试脚本',type:'Utility'});
  await call('eh_addSceneObject',{parent:g.guid.data,type:'Transform',name:'MCP测试脚本对象'});
- await write('Assets/Blank94Probe.ts',await fs.readFile(new URL('../test/fixtures/Blank94Probe.ts',import.meta.url),'utf8'));
  const params={scriptName:'Blank94Probe',targetId:'MCP测试脚本对象',abilities:['音高检测','音量检测','关键词检测']};
- await call('setupGameScript',params);
+ const setup=await call('setupGameScript',params);
+ let probe=await fs.readFile(new URL('../test/fixtures/Blank94Probe.ts',import.meta.url),'utf8');
+ // 跟随实际同步的运行库，而不是按编辑器版本猜测旧工程的导入名称。
+ if(setup.copiedRuntimeFiles.includes('AudioDetector.ts'))probe=probe.replaceAll('./AgentAudioDetector','./AudioDetector');
+ if(setup.copiedRuntimeFiles.includes('KeywordDetector.ts'))probe=probe.replaceAll('./AgentAudioKeyword','./KeywordDetector');
+ await write('Assets/Blank94Probe.ts',probe);
  await call('compileProject');
  const texturePath=path.join(projectPath,'Assets/MCPProbeTexture.png');
  await sharp({create:{width:64,height:64,channels:4,background:'#ff0000'}}).png().toFile(texturePath);

@@ -1,80 +1,82 @@
-# Xiangsu MCP · 像塑编辑器 MCP
+# 像塑 MCP
 
-让 AI Agent 通过 Model Context Protocol（MCP）操作抖音像塑：编辑场景、绑定素材、初始化 TypeScript 脚本、编译、截图和验证交互。
+[中文](README.md) | [English](README.en.md)
 
-**Xiangsu MCP is an independent MCP server for the Douyin Xiangsu AR effect editor.** It exposes scene editing, asset binding, TypeScript scripting, compilation, preview screenshots and interactive playtesting to MCP clients. **Windows + Xiangsu 9.4.0, 9.4.1 and 9.5.2 have been tested. Core regression workflows passed on 9.4.0/9.4.1; session binding, text layout and batch preflight, screenshots, compilation and recording passed on 9.5.2. Xiangsu 9.4.0 and later can be installed by default; untested workflows and versions require further verification. International TikTok Effect House compatibility is not verified.**
+让 AI Agent 通过 MCP 操作抖音像塑：编辑场景、开发脚本、编译、预览、保存，以及调用官方图片、音频和工作流能力。
 
-- 项目版本：0.2.2，使用 Node.js 和 stdio MCP，编辑器侧通过用户插件桥接。
-- 当前提供 105 个工具入口；入口数量包含兼容入口和明确未接入的云端入口，**不代表 105 项均已实测**。
-- 独立社区项目，非字节跳动、抖音或 TikTok 官方产品。不宣称完整替代官方 Agent / Ask AI。
-- [安装](#安装) · [功能与验证状态](#功能与验证状态) · [AI 使用指引](#ai-使用指引) · [English quick start](#english-quick-start)
+> **建议优先使用官方 MCP。** 像塑已提供官方 MCP，请先使用编辑器提供的安装提示词配置官方接入，后续跟随像塑更新。[像塑官网](https://effect.douyin.com/) · [官方更新日志](https://bytedance.larkoffice.com/docx/RscSdNN59owmcaxXtk1cEGhun2c)
+>
+> 如果你的客户端需要 **stdio 接入**，或需要本项目保留的试玩状态读取、音频检测输入模拟和旧工具接口，再考虑使用本项目。这是独立社区项目，后续以低频适配和必要修复为主。
 
-## 功能与验证状态
+**当前版本：0.3.0。** 历史版本见 [Releases](https://github.com/sleepyquq/xiangsu-mcp/releases)；使用历史版本时，请同时阅读该版本自带的 README。
 
-“已实测”指在像塑测试副本中完成相应操作并读回、编译或检查真实预览；不表示该工具的全部参数组合均已覆盖。详细证据范围见 [9.4 验证记录](docs/UPGRADE-0.2.md) 与 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。
+[版本对应](#版本对应与兼容规则) · [功能](#功能与验证范围) · [安装](#安装本项目) · [使用](#让-agent-开始工作) · [常见问题](#常见问题)
 
-**0.2.2 修复像塑 9.5.2 的截图及文字布局兼容问题，23 项自动测试通过。** 9.5.2 已实测截图、文字模式与尺寸批次预检、官方编译和短视频录制；详见 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。9.4.0/9.4.1 的历史核心回归范围保持，详见 [9.4.1 审查记录](docs/AUDIT-9.4.1.md)。新版新增的两项预览操作尚未接入。
+## 版本对应与兼容规则
 
-| 能力 | 当前实现 | 验证情况 |
-|---|---|---|
-| 会话与工程发现 | 查询已打开工程，按 projectPath / sessionId 绑定操作 | 已验证；同工程多窗口需指定会话 |
-| 场景读写 | sceneSpec 实时场景读取；sceneOps 平铺 DSL，创建、修改、显隐与读回 | 文字、图片、布局、颜色、对齐、贴图等已实测；复杂父级变换待验证 |
-| 脚本开发 | setupGameScript 初始化、依赖同步、序列化资源字段绑定 | 挂载、编译失败与修复、Texture / Material 绑定已实测 |
-| 编译与日志 | 官方编译器、日志分页、错误返回 | 已实测；失败不会伪装成成功 |
-| 试玩与状态 | playLifecycle / playStep / playState 等，开始、暂停、重启、结束 | Game2D 就绪、真实运行帧、重启隔离、结束恢复已实测 |
-| 预览与录像 | 截图、触摸、动作切换、MP4 录制 | 截图、触摸、张嘴/握拳/挥手、非空 MP4 已实测；拖拽等未逐项验证 |
-| 音频输入模拟 | 模拟音高、音量、关键词检测结果，确认接收并清空 | 已实测；这是检测输入模拟，**不生成声音** |
-| 工程文件 | 限定路径读写、SHA256 覆盖保护、备份 | 自动化测试覆盖；不允许直接覆盖主场景文件 |
-| 本地素材处理 | 图片裁剪、压缩、静态 SVG 转 PNG | 有本地测试覆盖；完整生成素材到最终预览链路待验证 |
-| 代码查询 | 基于 TypeScript 的本地符号查询 | 有本地测试覆盖；不是官方私有 CKG 引擎 |
-| 原生命令映射 | 71 个 eh_* 本地命令入口 | 尚未逐项实测；预制件、包导入、复杂材质、物理和快照等仍需专项回归 |
-| 官方资料读取 | 从本机安装目录提供 Skill、API 和资源说明 | 按需通过 MCP resources 读取，不附带官方文档包 |
-| 官方云端生成 | 7 个图片/音频生成及等待任务入口 | **未接入**，返回 OFFICIAL_CLOUD_BACKEND_NOT_ADAPTED |
+**从 0.3.0 起，每个 MCP 版本以本次实际验证的像塑版本为下限，只覆盖该版本及更新版本，不支持更旧版本。**
 
-### 尚未支持或不能保证的内容
+- **等于验证基线**：允许使用，已实测范围见下表和验证记录。
+- **高于验证基线**：允许使用并提示未实测；不保证未来像塑更新不会改变接口。
+- **低于验证基线**：校验拒绝。请升级像塑，或从 [历史 Releases](https://github.com/sleepyquq/xiangsu-mcp/releases) 选择适配旧像塑的 MCP。
 
-- 国际版 Effect House、macOS、像塑 9.4.0/9.4.1/9.5.2 之外的版本以及国内外工程互通，均未验证。各已测版本的功能覆盖范围见上方验证记录。
-- 不支持官方设计稿自动布局补全、完整 HUD 归一化、SVG 动画时间线。
-- 多步操作不是原子事务；部分失败需读回确认，不能盲目重试写入。
-- Text 默认（`boxDimension:'dynamic'`）按内容自动撑开，此时设置 width/height 会在预检直接拒绝（TEXT_SIZE_REQUIRES_FIXED_BOX）。需要固定尺寸请用 `fixedSize`；只固定宽度用 `fixedWidth`，此时只核对宽度，高度随内容。
-- 试玩依赖已挂载且能启动的 Game2D 入口；运行库结构不匹配会拒绝插入临时代码。
-- 试玩期间用户改动运行库时，会保留冲突和备份；不会强行覆盖用户修改。
-- 自动提取 Schema 尚不能完整表达所有 Zod refine / transform，最终仍由编辑器校验。
-- 使用内部编辑器接口。像塑 9.4.0 及之后版本默认允许安装；9.4.0、9.4.1 已完成核心回归，9.5.2 已完成会话绑定、文字布局与批次预检、截图、编译和录制的实机验证。其他功能及后续版本需按实际需求继续验证。
-- 社区反馈的像塑 9.5.2（Windows）截图与文字尺寸问题（[#3](https://github.com/sleepyquq/xiangsu-mcp/issues/3)）已修复并实机复测通过：带/不带 path 截图、三种文字框模式、连续尺寸修改和整批零写入预检均通过。修复已随 0.2.2 发布，详见 [9.5.2 验证记录](docs/VERIFY-9.5.2-ISSUE-3.md)。
+例如，MCP 0.3.0 允许像塑 **9.7.2 及以后版本**；9.7.1、9.6.x、9.5.x 不能通过本版校验。
 
-## 安装
+| MCP 版本 | 对应的实际验证版本 | 版本校验范围 | 验证重点 |
+| --- | --- | --- | --- |
+| **0.3.0** | **9.7.2.918909817** | **9.7.2 及以后**；更高版本标记为未实测 | 场景编辑、脚本挂载与编译、真实预览、保存，图片和短音频生成并导入；[更新记录](docs/RESTART.md) |
+| [0.2.2](https://github.com/sleepyquq/xiangsu-mcp/releases/tag/v0.2.2) | **9.5.2.887097048** | 历史规则：9.4.0 及以后允许安装 | 会话绑定、文字布局与批次预检、截图、编译、录制；[验证记录](docs/VERIFY-9.5.2-ISSUE-3.md) |
+| [0.2.1](https://github.com/sleepyquq/xiangsu-mcp/releases/tag/v0.2.1) | **9.4.1.872531341**；保留 9.4.0 的历史验证 | 历史规则：9.4.0 及以后允许安装 | 场景、脚本、资源绑定、试玩状态、音频模拟与动作；[验证记录](docs/AUDIT-9.4.1.md) |
+| [0.2.0](https://github.com/sleepyquq/xiangsu-mcp/releases/tag/v0.2.0) | **9.4.0.866073534** | 仅接受当时审计过的 9.4.0 安装包 | 场景、脚本、预览、交互和运行库恢复；[验证记录](docs/UPGRADE-0.2.md) |
 
-### 推荐：把下面的提示词发给 Agent
+历史发布版保留发布时的校验规则，不追溯改写。**允许安装不等于完成实测**；旧版的成功记录也不自动成为新版全部功能的验证结果。
 
-将最后一行的路径改为自己的特效工程目录，复制到有本机终端权限的 AI Agent：
+## 功能与验证范围
+
+| 功能 | 可用内容与实测状态 |
+| --- | --- |
+| 场景与脚本 | 编辑对象、管理资源、开发脚本。9.7.2 已验证对象编辑、脚本挂载、编译及日志 |
+| 预览与保存 | 切换预览输入、截图、交互和保存工程。9.7.2 已验证真实预览、启动日志和保存 |
+| 图片与音频 | 单项或批量生成素材并导入。9.7.2 已真实生成并导入 1 张图、1 段短音频 |
+| AI 工作流 | 编辑工作流、生成并下载结果。已实测能力查询；完整编辑与生成流程尚未实机验证 |
+| H5 脚本动画 | 导入脚本动画、查询状态和渲染参数。已实测参数读取及产物发布；完整导入和云端视频尚未端到端验证 |
+| 试玩与音频输入模拟 | 读取运行状态、模拟动作和音频检测输入。9.4.0／9.4.1 有核心实测；9.7.2 尚未重跑整套试玩回归 |
+| 本地辅助工具 | 工程文件读写、图片裁剪压缩、静态 SVG 转 PNG、TypeScript 符号查询 |
+
+当前 **37 项自动测试通过**，实机验证范围见[更新记录](docs/RESTART.md)。
+
+使用时还需注意：
+
+- 图片、音频和工作流功能需要像塑官方 MCP 服务可用；云端生成使用像塑登录状态和账号额度，只按用户授权提交。
+- 国际版 TikTok Effect House、macOS、复杂材质／物理／预制件和全部原生命令组合尚未验证。多步操作可能部分完成，失败或超时后先读回，不自动重放写入。
+
+## 安装本项目
+
+如果官方 MCP 已满足需求，无需安装本项目。以下步骤适用于 0.3.0。
+
+### 让 Agent 安装
+
+把工程总目录改为自己的路径，再复制下面的提示词：
 
 ```text
-请帮我安装并配置 Xiangsu MCP：https://github.com/sleepyquq/xiangsu-mcp
+请帮我安装 Xiangsu MCP：https://github.com/sleepyquq/xiangsu-mcp
 
-先阅读仓库 README.md 和 docs/SKILL-ADAPTER.md，检查 Windows、PowerShell 7、Git、Node.js 和像塑版本。将仓库克隆到合适的工具目录（已有仓库则复用），安装依赖并运行测试；设置 XIANGSU_EFFECT_WORKSPACE 后运行插件安装脚本。自定义像塑安装位置时设置 XIANGSU_EDITOR_ROOT。
+先读 README.md 和 docs/SKILL-ADAPTER.md，核对取得的源码版本与像塑版本。若官方 MCP 已满足需求，优先配置官方；我需要本项目时，再复用或克隆仓库，检查 Windows、PowerShell 7、Git、Node.js 24，安装依赖并运行 npm test。
 
-根据我正在使用的 MCP 客户端配置 stdio 服务，保留已有配置，使用 node 和 src/server.mjs 的绝对路径。若安装器提示版本或官方包未实测，继续安装，并提醒我在测试工程中验证实际功能；不要绕过命令清单或桥接一致性校验，也不要关闭有未保存工作的编辑器。如果需要我保存工作并重新打开工程，明确告诉我。
+设置 XIANGSU_EFFECT_WORKSPACE 后运行 node scripts/install.mjs；像塑不在默认位置时设置 XIANGSU_EDITOR_ROOT。遵守所选 MCP 版本的最低像塑版本限制，更高但未实测版本可继续，低于下限时不要绕过校验。
 
-安装后重新连接 MCP，调用 xiangsu_sessions 核对工程路径、xiangsu_capabilities 查看能力、eh_getScene 验证真实连通；不要修改工程。若缺少客户端配置权限或工程窗口尚未打开，说明准确的剩余步骤，不要声称安装验证成功。
+保留客户端已有配置，添加 xiangsu-editor stdio 服务，使用 node 和 src/server.mjs 的绝对路径。安装插件后如需重开工程，先告诉我保存工作，不要擅自重启。重新连接 MCP 后，核对测试工程并只读确认连接；不要自动修改工程或提交付费生成。
 
-我的特效工程总目录：D:/Effects（请替换为实际路径）
+我的特效工程总目录：D:/Effects（请替换）
 ```
 
-以下是手动安装步骤，Agent 也可以据此执行。
+### 1. 准备环境与源码
 
-### 1. 准备环境
+- Windows、像塑 **9.7.2 或更高版本**，先确认可以正常打开工程。
+- Node.js **24**、PowerShell **7**（`pwsh.exe`）、Git，以及支持本地 stdio MCP 的客户端。
+- 独立的特效工程总目录，例如 `D:/Effects`；不要把源码目录当作特效工程目录。
 
-- Windows，安装 **像塑桌面版 9.4.0 或之后版本**，先确认能够正常打开工程；已实测版本为 **9.4.0、9.4.1、9.5.2**，具体功能范围见验证记录。
-- Node.js：本项目验证环境为 **24.14.1**；建议使用 Node.js 24。
-- PowerShell 7（`pwsh.exe`）、Git，以及支持本地 stdio MCP 的客户端。
-- 一个独立特效工程目录，例如 `D:/Effects`。源码仓库目录与特效工程目录是两回事。
-
-像塑可从 [官方网站](https://effect.douyin.com/) 获取。新版本或同版本不同安装包会显示未验证提示，但仍可安装；请先在可丢弃的测试工程中验证连接、场景读回及所需功能，不能把安装成功视作功能兼容。
-
-### 2. 克隆并安装依赖
-
-在 PowerShell 7 中执行：
+在 PowerShell 7 中执行；已有源码则复用，历史版本按对应 tag 和 README 安装：
 
 ```powershell
 git clone https://github.com/sleepyquq/xiangsu-mcp.git
@@ -83,9 +85,7 @@ npm ci --ignore-scripts
 npm test
 ```
 
-### 3. 安装像塑用户插件
-
-将下面的路径替换为自己的**特效工程总目录**：
+### 2. 安装像塑用户插件
 
 ```powershell
 $env:XIANGSU_EFFECT_WORKSPACE = 'D:/Effects'
@@ -94,15 +94,13 @@ $env:XIANGSU_EFFECT_WORKSPACE = 'D:/Effects'
 node scripts/install.mjs
 ```
 
-安装器会核对像塑版本及 `agent-server.exe` 哈希：目前哈希白名单登记了 9.4.0/9.4.1 的对应安装包，其他版本或不同安装包会提示并继续安装。**9.5.2 已完成上述实机验证，但其包哈希尚未登记到安装器白名单，因此仍可能显示 `XIANGSU_COMPATIBILITY_UNVERIFIED`；该提示不表示 9.5.2 从未验证。** 安装器会生成忽略跟踪的 `config.local.json`、`commands.runtime.json`，安装用户插件 `CodexXiangsuMCP@0.2.2`。原配置备份位于 `.local/install-backups/`。不修改像塑官方二进制。
+安装器生成本机配置并安装 `CodexXiangsuMCP@0.3.0`。配置备份位于 `.local/install-backups/`。
 
-安装完成后，**先保存已有工作，再关闭并重新打开像塑工程窗口**，让插件加载。不要直接重启有未保存编辑的窗口。保持源码仓库路径不变，用户插件会引用该目录。
+**先保存工作，再关闭并重新打开工程窗口**，让插件生效。安装后不要移动源码仓库目录。
 
-首次安装不需要重新提取命令清单。`scripts/extract-catalog.mjs` 用于维护者审计新版安装包，默认生成 `.local/catalog.candidate.json`；生成候选并不等于新版已兼容。
+### 3. 注册 MCP 客户端
 
-### 4. 配置 MCP 客户端
-
-在客户端的 MCP 配置中添加一个 stdio 服务。下方为常见的 `mcpServers` JSON 格式；替换成仓库实际绝对路径，客户端若提供图形配置则填写相同 command / args：
+在支持 `mcpServers` JSON 的客户端中添加以下配置；使用仓库的实际绝对路径，合并而非覆盖已有服务：
 
 ```json
 {
@@ -115,63 +113,41 @@ node scripts/install.mjs
 }
 ```
 
-如果客户端找不到 `node`，用 `Get-Command node` 查询路径，并将 `command` 替换为 `node.exe` 的绝对路径。服务使用 stdio，由客户端启动，不需要额外开放 HTTP 端口。配置后重新连接该 MCP 服务。
+客户端找不到 `node` 时，用 `Get-Command node` 查询并填写 `node.exe` 的绝对路径。生成任务耗时较长，客户端支持时将工具超时设为 **300 秒**，然后重连 MCP。
 
-### 5. 确认安装生效
+### 4. 确认连接
 
-1. 在像塑中打开位于允许目录下的测试工程。
-2. 让 AI 调用 `xiangsu_sessions`，确认返回的 `projectPath` 正是该工程。
-3. 调用 `xiangsu_capabilities` 查看当前工具与文档入口。
-4. 调用 `eh_getScene` 读取场景；成功读回才表明客户端与编辑器桥接正常。
+打开允许目录内的测试工程，让 Agent 按[适配说明](docs/SKILL-ADAPTER.md)核对工程路径，并读取当前场景。能正确读回场景，才说明已经连通编辑器。
 
-可以直接对 AI 说：
+## 让 Agent 开始工作
 
-> 使用 xiangsu-editor MCP，先列出会话并核对我的测试工程路径，读取适配说明，再读取当前场景。先不要修改工程。
+可以直接说：
 
-### 常见问题与升级
+> 使用 xiangsu-editor MCP，先读取适配说明，核对我打开的工程并读回场景。确认路径后再按我的要求修改。
+
+工具参数、文件操作和 H5 制作流程由 Agent 按[适配说明](docs/SKILL-ADAPTER.md)执行，无需手动拼写工具调用。
+
+## 常见问题
 
 | 情况 | 处理方式 |
-|---|---|
-| XIANGSU_COMPATIBILITY_UNVERIFIED | 版本或包哈希未登记到安装器白名单；允许安装。9.5.2 已通过专项实机验证，其他功能按需验证 |
-| EDITOR_VERSION_TOO_OLD | 当前编辑器早于 9.4.0，不在默认兼容范围 |
-| CATALOG_BASELINE_NOT_AUDITED | 仓库命令清单基线不匹配，需核对源码和清单后再安装 |
-| 查不到会话 | 确认用户插件已加载，并已重新打开实际工程窗口 |
-| 工程路径被拒绝 | 检查 config.local.json 的 effectWorkspace / allowedRoots，确认真实工程位于允许范围 |
-| 客户端工具列表还是旧的 | 重启/重新连接 MCP 服务；新开对话不一定重启底层进程 |
-| 更新了编辑器插件 | 保存工作、运行安装器、重新打开工程，再重连 MCP |
-| 命令超时 | 已开始的操作可能仍执行；先读回状态再决定恢复或重试 |
+| --- | --- |
+| `EDITOR_VERSION_TOO_OLD` | 0.3.0 要求像塑 9.7.2 起；升级像塑或选择历史 MCP，不绕过校验 |
+| `XIANGSU_COMPATIBILITY_UNVERIFIED` | 高于本版验证基线，允许使用；在测试副本检查实际需要的功能 |
+| `OFFICIAL_MCP_UNAVAILABLE` | 启动像塑并确认官方 MCP 服务可用、地址正确；原有本地编辑工具仍可使用 |
+| 查不到原插件会话／`BRIDGE_UPDATE_REQUIRED` | 确认插件安装到当前像塑版本；保存工作、重跑安装器并重开工程 |
+| 工程路径被拒绝 | 检查 `config.local.json` 的 `effectWorkspace`／`allowedRoots`，不要为通过校验随意扩大范围 |
+| 工具列表仍是旧的 | 重连该 MCP 服务或重新加载客户端；仅新开对话可能不会重启服务进程 |
+| 文字设置尺寸被拒绝 | `dynamic` 随内容伸缩，不能显式给宽高；需要固定尺寸时使用 `fixedSize`，只固定宽度用 `fixedWidth` |
+| 试玩无法开始 | 需要已挂载且能够运行的 Game2D 入口；依赖与临时代码恢复规则见适配说明 |
+| 写入或生成超时／取消 | 操作可能已开始，先查状态或读回实际结果，不自动重复提交 |
 
-停用时，从客户端删除该 MCP 配置；如需停用编辑器插件，只移除用户插件配置中的 `CodexXiangsuMCP` 条目，保存工作后重新打开像塑。保留其他插件条目。
-
-## AI 使用指引
-
-先读 [SKILL-ADAPTER.md](docs/SKILL-ADAPTER.md)，运行时也可读取 `xiangsu-doc://adapter/SKILL-ADAPTER.md`。随后通过 `resources/list` / `resources/read` 按需读取本机官方资料。
-
-1. 用 `xiangsu_sessions` 确认工程；不要根据源码仓库位置猜测特效工程路径。
-2. 以客户端当前暴露的 inputSchema 为准，先查询对象再使用真实 GUID 和组件字段。
-3. 工程操作采用统一外层参数，例如：
-
-```json
-{
-  "projectPath": "D:/Effects/MyTestEffect",
-  "params": {}
-}
-```
-
-这是 `eh_getScene` 的参数示例；必要时增加 `sessionId` 和 `timeoutMs`。查询辅助工具不需要这个外层。
-
-4. 修改后进行读回、编译和预览验证。“工具存在”“请求成功”不能代替“效果生效”。
-5. `project_write_file` 覆盖现有文件需要先读取得到的 SHA256。备份只覆盖磁盘状态，不代替未保存编辑的撤销记录。
+更新像塑后，按实际版本重新运行安装器并在保存工作后重开工程；超出已测基线时只验证所需能力。停用时删除客户端的 `xiangsu-editor` 配置，并仅移除插件配置中的 `CodexXiangsuMCP` 条目，保留其他插件与回退备份。
 
 ## 测试与贡献
 
-```powershell
-npm test
-```
+运行 `npm test` 验证协议、参数、路径边界、覆盖保护、转发、试玩隔离和恢复逻辑，不需要启动像塑。
 
-自动化测试覆盖 MCP stdio、参数/路径边界、覆盖保护、场景读回、截图、试玩状态隔离、音频确认及临时运行库恢复。它们不需要打开像塑，**不能代替真实编辑器测试**。
-
-真实回归只能针对已确认可丢弃的空白测试副本：
+真实回归只操作已确认可丢弃的测试副本。现有脚本会写入测试源码与素材并修改内存场景，不保存主场景：
 
 ```powershell
 node scripts/blank-setup.mjs 'D:/Effects/DisposableBlankTest'
@@ -179,23 +155,14 @@ node scripts/blank-check.mjs 'D:/Effects/DisposableBlankTest'
 node scripts/blank-play.mjs 'D:/Effects/DisposableBlankTest'
 ```
 
-先在像塑打开该空项目并核对会话。脚本会创建测试源码、素材和证据，会修改编辑器内存场景，但不保存场景；验证完关闭窗口并选择不保存。测试文件仍保留在副本中。历史 `live-*` / `script-test.mjs` 使用特定测试目录，不适合作为新用户的一键测试入口。
+先在像塑打开该副本并核对会话。结束后关闭窗口并选择不保存；磁盘上的测试文件仍保留。请勿将正式工程用于这些脚本。
 
-欢迎提交带编辑器版本、复现步骤、脱敏错误日志和预期/实际结果的 Issue。优先方向：新版本适配、更多真实回归、安装体验、国际版兼容性验证。
+欢迎提交包含像塑版本、MCP 版本、客户端、复现步骤和脱敏日志的 [Issue](https://github.com/sleepyquq/xiangsu-mcp/issues)。修改接口或适配行为时，请区分自动测试与实际编辑器验证。
 
-## English quick start
+## 项目来源
 
-1. Install Windows, Xiangsu **9.4.0 or later**, PowerShell 7, Git and Node.js 24. Core workflows have been tested on 9.4.0 and 9.4.1; focused screenshot, text layout, compilation and recording checks also passed on 9.5.2.
-2. Clone this repository and run `npm ci --ignore-scripts`, then `npm test`.
-3. Set `XIANGSU_EFFECT_WORKSPACE` to your effect projects directory and run `node scripts/install.mjs`. Set `XIANGSU_EDITOR_ROOT` only for a custom editor installation.
-4. Save your work and reopen the editor project to load the user plugin.
-5. Configure a stdio MCP server: command `node`, args containing the absolute path to `src/server.mjs`.
-6. Reconnect MCP, call `xiangsu_sessions`, verify the project path, then call `eh_getScene`.
+这是非官方社区项目，不属于字节跳动、抖音或 TikTok。仓库包含独立编写的桥接、适配器、测试及用于互操作的接口元数据；不分发像塑可执行文件、官方运行库或素材包。所需官方资料与受管脚本从用户本机安装目录读取，第三方内容的权利归原权利人。
 
-Cloud image/audio generation is **not connected**. Advanced materials, physics, prefabs and some editor commands still need live testing. TikTok Effect House, macOS and cross-product project portability are **unverified**. Read the [adapter guide](docs/SKILL-ADAPTER.md) before making edits.
+## 许可证
 
-## 项目来源与相关名称
-
-本仓库包含独立编写的桥接、适配器、测试，以及用于接口互操作的提取命令元数据 `catalog.generated.json`；不包含像塑可执行文件、官方运行库或官方素材包。所需官方资料和运行库从用户自己的安装目录按需读取。第三方内容的权利归原权利人；MCP SDK 的许可证不自动覆盖本项目或官方内容。
-
-相关检索词：像塑 MCP、抖音特效 MCP、Xiangsu MCP、Douyin AR、Model Context Protocol、AI Agent、AR effect editor automation、TypeScript、Effect House。**Effect House 是兼容性研究方向，不是当前支持承诺。**
+本项目自有代码采用 [MIT 许可证](LICENSE)，第三方内容遵循其原有许可。

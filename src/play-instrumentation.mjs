@@ -78,7 +78,9 @@ function instrumentKeyword(source){
 
 export async function prepareInstrumentation(state,c,save){
  const jobs=[];
- for(const [name,transform]of [['Game2D.ts',s=>instrumentGame(s,state.id)],['AgentAudioDetector.ts',instrumentDetector],['AgentAudioKeyword.ts',instrumentKeyword]]){
+ // 按工程实际文件识别新旧运行库；两代文件并存时都插入，避免旧脚本导入被遗漏。
+ const detectors=['AgentAudioDetector.ts','AudioDetector.ts'],keywords=['AgentAudioKeyword.ts','KeywordDetector.ts'];
+ for(const [name,transform]of [['Game2D.ts',s=>instrumentGame(s,state.id)],...detectors.map(n=>[n,instrumentDetector]),...keywords.map(n=>[n,instrumentKeyword])]){
   const file=checkedPath('Assets/'+name,c.projectPath,true);
   let source;try{source=await fs.readFile(file,'utf8');}catch(e){if(e.code==='ENOENT'&&name!=='Game2D.ts')continue;throw e;}
   const patched=transform(source),backup=checkedPath(`.codex/backups/play-${state.id}/${name}`,c.projectPath,true);
@@ -89,7 +91,7 @@ export async function prepareInstrumentation(state,c,save){
  // 写入前持久化恢复清单；进程中断后 finish 仍能安全恢复。
  state.instrumentation=jobs.map(({name,backup,originalHash,patchedHash})=>({name,backup,originalHash,patchedHash}));await save();
  for(const j of jobs){if(hash(await fs.readFile(j.file))!==j.originalHash)throw Error('PLAY_RUNTIME_CHANGED: '+j.name);await writeAtomic(j.file,j.patched);}
- return {state:true,audioDetector:jobs.some(j=>j.name==='AgentAudioDetector.ts'),keyword:jobs.some(j=>j.name==='AgentAudioKeyword.ts')};
+ return {state:true,audioDetector:jobs.some(j=>detectors.includes(j.name)),keyword:jobs.some(j=>keywords.includes(j.name))};
 }
 export async function restoreInstrumentation(state,c){
  for(const j of state.instrumentation??[]){

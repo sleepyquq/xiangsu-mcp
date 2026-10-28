@@ -1,6 +1,31 @@
 # 官方 Skill 的本地适配与读取指引
 
-适用：像塑 9.4.0 及之后版本、MCP 0.2.1；仅 9.4.0 / 9.4.1 完成核心实测（核对日期 2026-09-16）。后续版本默认允许安装，但功能可能不同，需在测试工程中自行验证。这是适配契约，不是全部能力已通过真实编辑器回归的声明。修改适配器后同步更新本文件；以已加载服务的工具 schema 和编辑器实际读回为准。历史验证不能直接继承为新版完整验证。9.4.1 的兼容范围见 [审查记录](AUDIT-9.4.1.md)，新增 `seek_to_time`、`switch_gesture_video` 尚未接入。
+> 0.3.0 同时提供原插件通道和官方 MCP 通道，最低像塑版本为 9.7.2；后续像塑版本允许安装但不自动算作实测。更旧像塑使用历史 MCP。版本对应与安装见 [中文 README](../README.md) / [English README](../README.en.md)。
+
+下文原插件实现沿用历史接口语义；9.4.0/9.4.1 核心验证、9.5.2 专项验证和 9.6 候选不自动成为 9.7.2 的验证证据。修改适配器后同步更新本文件，以当前工具 schema 和真实返回为准。
+
+## 新增官方通道：一个 stdio 入口使用两类工具
+
+不必让客户端直接连接 HTTP：本项目的 stdio MCP 已提供官方 38 个原名工具。先调用 `health`、`list_instances`，选定 `instance_id` 后调用 `get_project_context`，核对工程并读取返回的 `agents_file` 和任务所需资料。每次工程操作检查实例和允许目录，不要求原插件会话；官方服务离线时，原插件工具仍独立可用。
+
+官方原名工具直接使用原参数，不包进 `params`。例如保存已有工程：
+
+```json
+{"name":"save_project","arguments":{"instance_id":"1"}}
+```
+
+原插件工具保持 `{projectPath, sessionId?, params, timeoutMs?}`，例如 `eh_getScene`。两种格式不能混用。
+
+- 图片/音频：`generate_image`、`generate_audio`、`generate_assets_batch`；使用像塑正常登录状态和账号额度，不自动提交生成任务。
+- AI 工作流：能力/图查询、原图上传、原子 Patch、生成、状态和受控结果下载；保留 `request_id`、图 revision 和工程 ID，不重放结果未知的提交。
+- H5 脚本动画：通过 `xiangsu-doc://official-skills/SKILL.md` 路由作者/转换/导入 Skill。最终 ZIP 位于已核对工程内时，调用 `publish_h5_artifact({instance_id,zip_path,request_id,artifact_id})`，它复用安装目录的受管脚本发布并计算合同要求的 ZIP 摘要；随后把返回的完整句柄交给 `import_h5_render_bundle`。不自行创建 ArtifactStore 或伪造 ready.json。
+- 原生工程保存/状态、资源预览、场景截图标注、可视化脚本图、知识查询和预览输入管理均可通过官方原名工具使用。
+
+38 个入口及分组见 [重启更新记录](RESTART.md)。`xiangsu_capabilities` 返回两个通道和文档根。官方资料通过 `official-skills` / `official-workspace` URI 按需读取，也可按上下文返回的绝对路径读取本机原文；包括 H5 所需脚本，不复制官方实现到源码仓库。
+
+`update_handoff_context` 只在任务需要且用户授权记录时调用；不把资料中的强制聊天记录流程当作自动发送用户对话的权限。`report_install` 只用于实际安装流程。官方 MCP 超时/取消后应先读取状态，不能自动重试写入或付费生成。
+
+下面各节继续描述原插件通道。
 
 ## 开始任务
 
@@ -42,7 +67,7 @@
 | `AskUserQuestion` 专用草案卡片、RootAgent 调度、调用后强制结束回合 | 不复制内部 UI/调度协议；需求明确则继续，仅在缺少影响结果的必要信息时用当前对话澄清 |
 | `.agent/setting-image/style_selection.json`、设定图确认和生成状态 | 采用用户提供或已确认的风格与参考。必要时记在 `.codex/notes.md`；不伪造官方确认文件或任务状态。缺少这个内部文件本身不阻塞我们的创作 |
 | 固定 Draft/Brief/manifest 文件、强制多阶段规划 | 模板按需参考，简单修改不创建整套文档。确实被当前脚本或工具读取的文件须保留其真实格式和路径，不能仅因目录整理就改名 |
-| Seedream、音频生成、等待云端任务、设定参考图工具 | 7 个官方云端入口尚未接入，调用会报错。图片由当前图像工具生成，取得本地素材后导入并验证；音频生成方案待定，不伪造生成结果 |
+| Seedream、音频生成、等待云端任务、设定参考图工具 | 旧 7 个占位入口保留明确错误和迁移提示；新工作使用已接入的 `generate_image` / `generate_audio` / `generate_assets_batch` 及官方工作流工具，不混用旧参数 |
 | 官方统计、聊天历史、内部任务完成信号 | 不写入。`task_done` 仅返回摘要，不保存工程、不代表已验证、不更新官方聊天 |
 | `.agent/skills/` 全量释放 | 不执行。只从安装目录读说明；运行时库和脚本模板由 `setupGameScript` 按所选能力复制到 Assets。`.codex/runtime-dependencies.json` 保存已同步哈希，用户修改冲突时拒绝覆盖。旧 userScript 作为兼容入口保留 |
 
@@ -73,10 +98,11 @@
 | `eh_recordPreviewVideo` | 默认输出到工程 `.codex/artifacts/recordings/`，需读回输出并核对文件；已打开的旧桥接窗口可能仍采用旧目录 |
 | `imageCrop` / `imageCompress` / `svgConvert` | 本地确定性处理；区域裁剪须指定 outputPath。设计稿尺寸推断、HUD 自动归一化、SVG 动画不支持；显式给尺寸及路径 |
 | `code_search` / `consoleLog` | 前者是本地 TS 符号查询，不是官方私有代码图谱；日志已适配 9.4 startLine/count 参数顺序，但空日志仍不能作为正常运行证据 |
-| `playHumanActions` / `playStep` | 枚举精确动作 ID；playStep 执行有序 actions，每项提供 commandType、params、waitAfterMs（1～30000）。支持触摸、拖拽、wait、switch_human_action、simulate_audio_input。失败仍清理模拟音频并暂停，返回 completed 与错误，禁止盲目重试 |
+| `playHumanActions` / `playStep` | 枚举本机可用动作 ID；playStep 执行有序 actions，每项提供 commandType、params、waitAfterMs（1～30000）。支持触摸、拖拽、wait、switch_human_action、simulate_audio_input。9.6 起动作同时支持旧 actionId 和新 materialRef/inputType，自动管理动作会话并在 finish 或执行失败时恢复预览输入；旧版仍按原单参数契约调用。失败返回 completed 与错误，禁止盲目重试 |
+| `preparePlayMaterial` | 从工程内 sourcePath 或 HTTPS MP4/MOV url 复制/下载到 `.codex/artifacts/play-material/`，返回 materialRef；最大 128 MiB，可传 sha256 校验完整性。重定向也必须使用 HTTPS，不覆盖已有素材。仅9.6起支持将素材交给动作切换 |
 | `playLifecycle` / `playScreenshot` | start/restart/finish 管理按工程、会话绑定的试玩状态；开始真实录制，截图固定 scale=0.5，产物在 .codex/artifacts/playthrough。finish 检查视频文件。失败会清理；清理失败保留 active 状态，需继续收尾 |
 | `playStateFields` / `playState` | 先枚举真实字段，再用 target:{type:fields,fieldNames:[...]} 和 range:{type:lastFrames,frameCount:N} 或 {type:sinceLastPause} 查询。只读当前试玩的真实 ndjson，最多读尾部 4MB、lastFrames 上限 1000；未知字段、日志缺失、多份候选均明确报错，不用静态场景填补 |
-| 保存、重开编辑器 | 当前没有已验证的保存工程 MCP 入口；使用 GUI 保存并核对工程落盘，不重启未保存窗口 |
+| 保存、重开编辑器 | 使用新增官方通道的 `save_project` / `project_status`；首次保存传永久目录。原插件调用不改成隐式保存，也不重启未保存窗口 |
 
 ## 工程目录与失败处理
 
@@ -88,7 +114,8 @@
 - `playLifecycle start` 临时插入 Game2D 状态上报与所需音频输入桥接，编译并等待运行脚本就绪；要求已经挂载且能启动的 Game2D 入口。普通空场景需先 setupGameScript。只支持已核对的运行库结构，锚点变化会拒绝写入。
 - 状态消息从 PreviewRenderMsg 35025 收集，优先读取会话目录 `playthrough/<playId>.ndjson`，同时核对 evalId/runId；官方转发器的重复日志不造成歧义。对象序列化有深度、数组与字段数上限，截断/循环明确标记，不能视作完整对象导出。
 - 注入前将原文、哈希和恢复清单存入 `.codex/backups/play-<id>`。finish 恢复源码、编译并重载；中途用户改过运行库会报 PLAY_RESTORE_CONFLICT，保留新修改与备份。清理失败可重试 finish，已结束的录像不会重复结束。此流程会改写临时源码，不调用保存场景。
-- 音频模拟驱动 AgentAudioDetector / AgentAudioKeyword 的检测结果与回调，不生成真实声音。volume 是底层检测原始值，不是 getVolume() 的感知响度。9.4.0 运行库按幅度处理；9.4.1 改按能量处理，使用 10 倍常用对数、[-16, -7] dB 窗口和 0.7 次幂。新版输入 0.1 对应约 0.753，0.001 会映射为零；不能复用旧版的响度预期。具体取决于工程实际同步的运行库，升级时保留用户修改保护。本桥接输入从渲染线程接收时计时，并等待 audioInput 确认；确认超时会报错而不是报告已执行。每步结束清空输入；没有对应运行库时在动作执行前拒绝。
+- 音频模拟按工程实际文件识别 `AgentAudioDetector` / `AgentAudioKeyword` 与9.6的 `AudioDetector` / `KeywordDetector`；混用时同时适配，驱动检测结果与回调，不生成真实声音。volume 是底层检测原始值，不是 getVolume() 的感知响度。9.4.0 运行库按幅度处理；9.4.1 起按能量处理，使用 10 倍常用对数、[-16, -7] dB 窗口和 0.7 次幂。输入 0.1 对应约 0.753，0.001 会映射为零；不能复用旧版的响度预期。具体取决于工程实际同步的运行库，升级时保留用户修改保护。本桥接输入从渲染线程接收时计时，并等待 audioInput 确认；确认超时会报错而不是报告已执行。每步结束清空输入；没有对应运行库时在动作执行前拒绝。
+- 9.6 的旧动作 ID 从本机官方预览清单解析，只枚举文件实际存在的动作；没有素材时先在像塑下载该素材，或使用 `preparePlayMaterial`。新参数为 `{materialRef,inputType}`，inputType 取 `preview_face` / `preview_hand` / `preview_fullbody` / `preview_twoperson`。直接调用 `eh_switchHumanAction` 会自动开始动作会话，使用完必须调用 `eh_restoreHumanActionSession`；如传自定义 sessionId，恢复时须传同一 ID。这是内层动作会话 ID，不是统一外层的编辑器 sessionId。优先使用会自动收尾的 playLifecycle/playStep。
 - 会话发现并发读取历史记录并返回 heartbeatAgeMs。明确指定 sessionId 时容忍最多两分钟心跳延迟，仍检查进程存活、主机实际响应、工程路径与桥接哈希；未指定会话的自动选择仍要求新鲜心跳。
 - 调用参数错误先对照本地 schema；写入失败或超时先读回，不能盲目重试；云端未适配错误改走已明确的替代路线。验证范围按改动决定，不强制每轮完整审计。
 - 读到与当前接口冲突的官方新文档时，记录编辑器版本、接口名和差异，在测试副本验证后再调整适配说明。不要把文档新增或工具已登记当作已验证。

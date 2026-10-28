@@ -8,8 +8,9 @@ import {codeSearch} from './code-search.mjs';
 import {sceneOps,sceneSpec} from './scene.mjs';
 import {setupScript} from './scripts.mjs';
 import {runPlay,playNames} from './play.mjs';
+import {preparePlayMaterial} from './play-material.mjs';
 export const cloudTools=new Set(['audioEffectWorkflow','audioEffectWorkflowBatch','awaitAudioGeneration','awaitImageGeneration','seedreamEffectWorkflow','seedreamEffectWorkflowBatch','generateSettingReferenceImage']);
-export const localAdapterNames=new Set(['setupGameScript','sceneOps','sceneSpec','userScript','compileProject','previewTool','consoleLog','ganEffect','materialAsset','builtinResource','ffmpegInfo','imageCrop','imageCompress','svgConvert','task_done','code_search','effect_house_toolbox']);
+export const localAdapterNames=new Set(['setupGameScript','sceneOps','sceneSpec','userScript','compileProject','previewTool','consoleLog','ganEffect','materialAsset','builtinResource','ffmpegInfo','imageCrop','imageCompress','svgConvert','task_done','code_search','effect_house_toolbox','preparePlayMaterial']);
 async function imageTool(name,p,c){
  if(p.inferencePath||p.assetType)throw Error('尚未适配官方设计稿尺寸推断/HUD 归一化；请显式提供尺寸');
  const source=checkedPath(p.inputPath??p.sourcePath??p.svgPath,c.projectPath);
@@ -53,9 +54,10 @@ async function imageTool(name,p,c){
  return {outputs:results,sync,adapterNotes:'本地确定性处理；不包含官方设计稿推断和生成任务状态。'};
 }
 export async function runAdapter(name,p,c){
+ if(name==='preparePlayMaterial')return preparePlayMaterial(p,c);
  if(playNames.has(name))return runPlay(name,p,c);
  if(name==='code_search')return codeSearch(p,c);
- if(cloudTools.has(name))throw Error('OFFICIAL_CLOUD_BACKEND_NOT_ADAPTED: 此工具依赖官方生成服务和任务上下文；本地 MCP 不会假装生成成功或挪用账号令牌。');
+ if(cloudTools.has(name))throw Error('OFFICIAL_CLOUD_BACKEND_NOT_ADAPTED: 这是旧版云端占位接口；请使用已接入的 generate_image、generate_audio、generate_assets_batch 或 AI 工作流工具，按官方原参数调用。');
  if(name==='userScript'||name==='setupGameScript')return setupScript(p,c,name==='userScript');
  if(['imageCrop','imageCompress','svgConvert'].includes(name))return imageTool(name,p,c);
  if(name==='compileProject')return c.call('runOtscCheck',{options:{timeoutMs:p.timeoutMs??60000,maxOutputChars:p.maxOutputChars??20000}});
