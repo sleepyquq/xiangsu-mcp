@@ -6,7 +6,7 @@
 
 > **建议优先使用官方 MCP。** 像塑已提供官方 MCP，请先使用编辑器提供的安装提示词配置官方接入，后续跟随像塑更新。[像塑官网](https://effect.douyin.com/) · [官方更新日志](https://bytedance.larkoffice.com/docx/RscSdNN59owmcaxXtk1cEGhun2c)
 >
-> 如果你的客户端需要 **stdio 接入**，或需要本项目保留的试玩状态读取、音频检测输入模拟和旧工具接口，再考虑使用本项目。这是独立社区项目，后续以低频适配和必要修复为主。
+> 如果官方 MCP 不可用或你的客户端需要 **stdio 接入**，或需要本项目保留的试玩状态读取、音频检测输入模拟和旧工具接口，再考虑使用本项目。这是独立社区项目，后续以低频适配和必要修复为主。
 
 **当前版本：0.3.0。** 历史版本见 [Releases](https://github.com/sleepyquq/xiangsu-mcp/releases)；使用历史版本时，请同时阅读该版本自带的 README。
 
